@@ -42,7 +42,7 @@ const DEFAULT_DATA = {
 
 // --- STATE MANAGEMENT ---
 let appState = null;
-let currentZoom = 0.85;
+let currentZoom = window.innerWidth <= 1024 ? 0.4 : 0.85;
 
 // Helper to get formatted Indonesian date (e.g. Kota Fiktif, 08 Mei 2026)
 function getIndonesianDate() {
