@@ -25,6 +25,7 @@ const DEFAULT_DATA = {
     customStampName: "", // File name
     customSig: null,   // Base64 data of custom signature
     customSigName: "",   // File name
+    companyName: "PT. YOUR COMPANY NAME",
     companyAddress: "Jl. Alamat Dummy No. 123, Kota Fiktif, Provinsi - 12345",
     customLogo: null,    // Base64 data of custom logo
     customLogoName: "",  // File name
@@ -121,6 +122,7 @@ function syncTextFields() {
     document.title = currentFileName;
     document.getElementById('input-klien-nama').value = appState.klienNama;
     document.getElementById('input-klien-alamat').value = appState.klienAlamat;
+    document.getElementById('input-company-name').value = appState.companyName;
     document.getElementById('input-company-address').value = appState.companyAddress;
     document.getElementById('input-narasi-pembuka').value = appState.narasiPembuka;
     document.getElementById('input-narasi-body').value = appState.narasiBody;
@@ -168,6 +170,10 @@ function syncTextFields() {
     document.getElementById('view-signer-role-2').textContent = appState.signerRole;
     document.getElementById('view-company-address').textContent = appState.companyAddress;
     document.getElementById('view-company-address-2').textContent = appState.companyAddress;
+    document.getElementById('view-company-name').textContent = appState.companyName;
+    document.getElementById('view-company-name-2').textContent = appState.companyName;
+    document.getElementById('view-stamp-text').textContent = appState.companyName;
+    document.getElementById('view-stamp-text-2').textContent = appState.companyName;
 
     // Overall visibility triggers
     document.getElementById('view-stamp').style.visibility = appState.showStamp ? 'visible' : 'hidden';
@@ -437,6 +443,7 @@ function bindGlobalEvents() {
         { id: 'input-filename', key: 'customFileName' },
         { id: 'input-klien-nama', key: 'klienNama', targetId: 'view-klien-nama' },
         { id: 'input-klien-alamat', key: 'klienAlamat', targetId: 'view-klien-alamat' },
+        { id: 'input-company-name', key: 'companyName', targets: ['view-company-name', 'view-company-name-2', 'view-stamp-text', 'view-stamp-text-2'] },
         { id: 'input-company-address', key: 'companyAddress', targets: ['view-company-address', 'view-company-address-2'] },
         { id: 'input-narasi-pembuka', key: 'narasiPembuka', targetId: 'view-narasi-pembuka' },
         { id: 'input-narasi-penutup', key: 'narasiPenutup', targetId: 'view-narasi-penutup' },

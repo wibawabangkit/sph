@@ -62,6 +62,10 @@
                         <button id="btn-clear-logo" class="btn-clear-file" style="display: none;">Reset ke Logo Default</button>
                     </div>
                     <div class="form-group mt-3">
+                        <label for="input-company-name">Nama Perusahaan</label>
+                        <input type="text" id="input-company-name" placeholder="Contoh: PT. YOUR COMPANY NAME">
+                    </div>
+                    <div class="form-group mt-3">
                         <label for="input-company-address">Alamat Perusahaan (Footer)</label>
                         <textarea id="input-company-address" rows="2" placeholder="Contoh: Jl. Alamat Dummy No. 123..."></textarea>
                     </div>
@@ -347,7 +351,7 @@
                     <!-- Signature & Stamp Block -->
                     <div class="signature-block">
                         <p class="sig-title">Hormat Kami,</p>
-                        <p class="sig-company font-bold">PT. YOUR COMPANY NAME</p>
+                        <p class="sig-company font-bold" id="view-company-name">PT. YOUR COMPANY NAME</p>
                         
                         <div class="sig-badge-container">
                             <!-- Visual Stamp -->
@@ -360,7 +364,7 @@
                                         <path id="stampTextPathUpper" d="M 18,75 A 57,57 0 0,1 132,75" fill="none" />
                                         <path id="stampTextPathLower" d="M 132,75 A 57,57 0 0,1 18,75" fill="none" />
                                         <text font-family="'Plus Jakarta Sans', sans-serif" font-size="9" font-weight="800" fill="var(--primary)" letter-spacing="2" opacity="0.85">
-                                            <textPath href="#stampTextPathUpper" startOffset="50%" text-anchor="middle">
+                                            <textPath href="#stampTextPathUpper" startOffset="50%" text-anchor="middle" id="view-stamp-text">
                                                 YOUR COMPANY NAME
                                             </textPath>
                                         </text>
@@ -478,7 +482,7 @@
                     <!-- Signature & Stamp Block -->
                     <div class="signature-block">
                         <p class="sig-title">Hormat Kami,</p>
-                        <p class="sig-company font-bold">PT. YOUR COMPANY NAME</p>
+                        <p class="sig-company font-bold" id="view-company-name-2">PT. YOUR COMPANY NAME</p>
                         
                         <div class="sig-badge-container">
                             <!-- Visual Stamp -->
@@ -491,7 +495,7 @@
                                         <path id="stampTextPathUpper2" d="M 18,75 A 57,57 0 0,1 132,75" fill="none" />
                                         <path id="stampTextPathLower2" d="M 132,75 A 57,57 0 0,1 18,75" fill="none" />
                                         <text font-family="'Plus Jakarta Sans', sans-serif" font-size="9" font-weight="800" fill="var(--primary)" letter-spacing="2" opacity="0.85">
-                                            <textPath href="#stampTextPathUpper2" startOffset="50%" text-anchor="middle">
+                                            <textPath href="#stampTextPathUpper2" startOffset="50%" text-anchor="middle" id="view-stamp-text-2">
                                                 YOUR COMPANY NAME
                                             </textPath>
                                         </text>
