@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quotation Generator</title>
+    <!-- Google Fonts for Premium look -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700&family=Playpen+Sans:wght@500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- SIDEBAR EDITOR (Left) -->
+        <aside class="sidebar no-print">
+            <header class="sidebar-header">
+                <div class="brand">
+                    <div class="brand-logo">
+                        <svg width="24" height="24" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M20 15H40V45H60V15H80V85H60V55H40V85H20V15Z" fill="url(#brandGrad)"/>
+                            <defs>
+                                <linearGradient id="brandGrad" x1="20" y1="15" x2="80" y2="85" gradientUnits="userSpaceOnUse">
+                                    <stop offset="0%" stop-color="#00bcd4" />
+                                    <stop offset="100%" stop-color="var(--primary-dark)" />
+                                </linearGradient>
+                            </defs>
+                        </svg>
+                    </div>
+                    <div>
+                        <h1>COMPANY</h1>
+                        <p>Quotation Generator</p>
+                    </div>
+                </div>
+                <div class="header-actions">
+                    <button id="btn-reset" class="btn btn-secondary" title="Reset ke Template Default">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path><path d="M3 3v5h5"></path></svg>
+                        Reset
+                    </button>
+                    <button id="btn-print" class="btn btn-primary" title="Cetak ke Printer atau Simpan PDF">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
+                        Cetak PDF
+                    </button>
+                </div>
+            </header>
+
+            <div class="sidebar-scroll">
+                <!-- Section 0: Logo & Identitas Kop Surat -->
+                <section class="editor-section">
+                    <h2 class="section-title">
+                        <span class="icon">🏢</span> Logo & Kop Surat Perusahaan
+                    </h2>
+                    <div class="upload-control-group">
+                        <label>Upload Logo Perusahaan (Header)</label>
+                        <div class="custom-file-upload">
+                            <input type="file" id="input-upload-logo" accept="image/*">
+                            <div class="upload-btn-wrapper">
+                                <span class="btn-upload">Pilih Logo Baru</span>
+                                <span class="file-name" id="logo-file-name">Menggunakan logo default</span>
+                            </div>
+                        </div>
+                        <button id="btn-clear-logo" class="btn-clear-file" style="display: none;">Reset ke Logo Default</button>
+                    </div>
+                    <div class="form-group mt-3">
+                        <label for="input-company-address">Alamat Perusahaan (Footer)</label>
+                        <textarea id="input-company-address" rows="2" placeholder="Contoh: Jl. Alamat Dummy No. 123..."></textarea>
+                    </div>
+                </section>
+
+                <!-- Section 0.5: Tema & Warna -->
+                <section class="editor-section">
+                    <h2 class="section-title">
+                        <span class="icon">🎨</span> Tema & Warna
+                    </h2>
+                    <div class="form-group">
+                        <label for="input-theme-color">Warna Utama Dokumen</label>
+                        <input type="color" id="input-theme-color" value="#00A2E2" style="width: 100%; height: 40px; cursor: pointer; border: none; padding: 0; background: none; border-radius: 8px;">
+                    </div>
+                </section>
+
+                <!-- Section 1: Metadata Surat -->
+                <section class="editor-section">
+                    <h2 class="section-title">
+                        <span class="icon">📄</span> Informasi Surat (Lembar 1)
+                    </h2>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="input-no">Nomor Surat</label>
+                            <input type="text" id="input-no" placeholder="Contoh: 14/SPH-DUMMY/V/2026">
+                        </div>
+                        <div class="form-group">
+                            <label for="input-tanggal">Tanggal Surat</label>
+                            <input type="text" id="input-tanggal" placeholder="Contoh: Kota Fiktif, 08 Mei 2026">
+                        </div>
+                        <div class="form-group full-width">
+                            <label for="input-perihal">Perihal</label>
+                            <input type="text" id="input-perihal" placeholder="Contoh: Penawaran Harga">
+                        </div>
+                        <div class="form-group full-width">
+                            <label for="input-lampiran">Lampiran</label>
+                            <input type="text" id="input-lampiran" placeholder="Contoh: Spesifikasi dan Rincian Harga (1 Lembar)">
+                        </div>
+                        <div class="form-group full-width">
+                            <label for="input-filename" style="display: flex; align-items: center; gap: 6px;">
+                                💾 Nama File PDF (Saat Disimpan)
+                            </label>
+                            <input type="text" id="input-filename" placeholder="Contoh: Penawaran_Harga">
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Section 2: Penerima Surat -->
+                <section class="editor-section">
+                    <h2 class="section-title">
+                        <span class="icon">👥</span> Penerima / Klien
+                    </h2>
+                    <div class="form-grid">
+                        <div class="form-group full-width">
+                            <label for="input-klien-nama">Nama Perusahaan / Penerima</label>
+                            <input type="text" id="input-klien-nama" placeholder="Contoh: PT. ABC">
+                        </div>
+                        <div class="form-group full-width">
+                            <label for="input-klien-alamat">Alamat / Lokasi</label>
+                            <input type="text" id="input-klien-alamat" placeholder="Contoh: di Tempat">
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Section 3: Narasi Surat -->
+                <section class="editor-section">
+                    <h2 class="section-title">
+                        <span class="icon">✍️</span> Narasi & Isi Surat
+                    </h2>
+                    <div class="form-group">
+                        <label for="input-narasi-pembuka">Paragraf Pembuka / Hormat</label>
+                        <input type="text" id="input-narasi-pembuka" placeholder="Dengan Hormat,">
+                    </div>
+                    <div class="form-group">
+                        <label for="input-narasi-body">Paragraf Utama (Isi)</label>
+                        <textarea id="input-narasi-body" rows="6" placeholder="Berdasarkan informasi yang kami dapat adanya kebutuhan untuk Penawaran Harga..."></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="input-narasi-penutup">Paragraf Penutup</label>
+                        <textarea id="input-narasi-penutup" rows="3" placeholder="Demikian Surat Penawaran Harga ini kami sampaikan..."></textarea>
+                    </div>
+                </section>
+
+                <!-- Section 4: Rincian Pekerjaan (Tabel) -->
+                <section class="editor-section">
+                    <div class="section-header-flex">
+                        <h2 class="section-title">
+                            <span class="icon">📊</span> Rincian Harga (Lembar 2)
+                        </h2>
+                        <button id="btn-add-row" class="btn btn-sm btn-success">
+                            + Tambah Baris
+                        </button>
+                    </div>
+
+                    <!-- Toggle to show/hide the grand total row -->
+                    <div class="checkbox-group" style="margin-bottom: 16px;">
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="chk-show-grand-total" checked>
+                            <span class="slider"></span>
+                            Tampilkan Total Keseluruhan
+                        </label>
+                    </div>
+                    
+                    <div id="table-editor-container" class="table-editor-list">
+                        <!-- Dynamic rows will be rendered here -->
+                    </div>
+                </section>
+
+                <!-- Section 5: Catatan Tambahan -->
+                <section class="editor-section">
+                    <div class="section-header-flex">
+                        <h2 class="section-title">
+                            <span class="icon">📝</span> Catatan Kaki (Notes)
+                        </h2>
+                        <button id="btn-add-note" class="btn btn-sm btn-secondary">
+                            + Tambah Catatan
+                        </button>
+                    </div>
+                    <div id="notes-editor-container" class="notes-editor-list">
+                        <!-- Dynamic notes editor will be rendered here -->
+                    </div>
+                </section>
+
+                <!-- Section 6: Opsi Dokumen & TTD -->
+                <section class="editor-section">
+                    <h2 class="section-title">
+                        <span class="icon">🔏</span> Tanda Tangan & Stempel
+                    </h2>
+                    
+                    <!-- Visibility Switches -->
+                    <div class="checkbox-group">
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="chk-show-stamp" checked>
+                            <span class="slider"></span>
+                            Tampilkan Stempel Perusahaan
+                        </label>
+                    </div>
+                    <div class="checkbox-group mt-3">
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="chk-show-sig" checked>
+                            <span class="slider"></span>
+                            Tampilkan Tanda Tangan Basah
+                        </label>
+                    </div>
+
+                    <!-- Custom Uploads -->
+                    <div class="upload-control-group mt-4">
+                        <label>File Stempel Kustom (Gambar)</label>
+                        <div class="custom-file-upload">
+                            <input type="file" id="input-upload-stamp" accept="image/*">
+                            <div class="upload-btn-wrapper">
+                                <span class="btn-upload">Pilih File Gambar</span>
+                                <span class="file-name" id="stamp-file-name">Menggunakan stempel bawaan</span>
+                            </div>
+                        </div>
+                        <button id="btn-clear-stamp" class="btn-clear-file" style="display: none;">Reset ke Stempel Default</button>
+                    </div>
+
+                    <div class="upload-control-group mt-3">
+                        <label>File Tanda Tangan Kustom (Gambar)</label>
+                        <div class="custom-file-upload">
+                            <input type="file" id="input-upload-sig" accept="image/*">
+                            <div class="upload-btn-wrapper">
+                                <span class="btn-upload">Pilih File Gambar</span>
+                                <span class="file-name" id="sig-file-name">Menggunakan TTD bawaan</span>
+                            </div>
+                        </div>
+                        <button id="btn-clear-sig" class="btn-clear-file" style="display: none;">Reset ke TTD Default</button>
+                    </div>
+
+                    <!-- Signature Resizer Slider -->
+                    <div class="form-group mt-3" style="margin-top: 14px;">
+                        <label for="input-sig-width">Ukuran Lebar Tanda Tangan: <span id="sig-width-val">170</span>px</label>
+                        <input type="range" id="input-sig-width" min="80" max="260" step="5" value="170" style="width: 100%; cursor: pointer;">
+                    </div>
+
+                    <!-- Signature Position Slider -->
+                    <div class="form-group mt-3" style="margin-top: 14px;">
+                        <label for="input-sig-left">Geser Posisi Tanda Tangan: <span id="sig-left-val">10</span>px</label>
+                        <input type="range" id="input-sig-left" min="-120" max="120" step="2" value="10" style="width: 100%; cursor: pointer;">
+                    </div>
+
+                    <!-- Signer Metadata -->
+                    <div class="form-grid mt-4 pt-3 border-top-dashed">
+                        <div class="form-group">
+                            <label for="input-signer-name">Nama Penandatangan</label>
+                            <input type="text" id="input-signer-name" placeholder="Nama Penandatangan">
+                        </div>
+                        <div class="form-group">
+                            <label for="input-signer-role">Jabatan</label>
+                            <input type="text" id="input-signer-role" placeholder="Jabatan">
+                        </div>
+                    </div>
+                </section>
+            </div>
+            
+            <div class="sidebar-footer">
+                <p>💡 <em>Tip: Klik <strong>Cetak PDF</strong> lalu pilih tujuan <strong>"Save as PDF"</strong> dengan ukuran kertas <strong>A4</strong> untuk hasil terbaik.</em></p>
+            </div>
+        </aside>
+
+        <!-- LIVE PREVIEW AREA (Right) -->
+        <main class="preview-area">
+            <div class="preview-zoom-controls no-print">
+                <button id="btn-zoom-out" class="zoom-btn" title="Perkecil Tampilan">-</button>
+                <span id="zoom-value">85%</span>
+                <button id="btn-zoom-in" class="zoom-btn" title="Perbesar Tampilan">+</button>
+            </div>
+
+            <div id="pages-container" class="pages-container" style="transform: scale(0.85);">
+                <!-- PAGE 1: SURAT PENAWARAN (COVER LETTER) -->
+                <div class="a4-page" id="page-1">
+                    <!-- Top geometric background accents -->
+                    <div class="page-top-accent"></div>
+                    
+                    <!-- Header Kop Surat -->
+                    <header class="doc-header">
+                        <div class="logo-container" id="view-logo-container-1">
+                            <!-- Default Vector Logo -->
+                            <div class="logo-default-wrapper" id="view-logo-default-1" style="display: flex; align-items: center; gap: 12px;">
+                                <svg class="heksa-logo" width="60" height="60" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M15 15C15 12.2386 17.2386 10 20 10H38C40.7614 10 43 12.2386 43 15V43H57V15C57 12.2386 59.2386 10 62 10H80C82.7614 10 85 12.2386 85 15V85C85 87.7614 82.7614 90 80 90H62C59.2386 90 57 87.7614 57 85V57H43V85C43 87.7614 40.7614 90 38 90H20C17.2386 90 15 87.7614 15 85V15Z" fill="url(#headerGrad)"/>
+                                    <defs>
+                                        <linearGradient id="headerGrad" x1="15" y1="10" x2="85" y2="90" gradientUnits="userSpaceOnUse">
+                                            <stop offset="0%" stop-color="var(--primary-light)" />
+                                            <stop offset="50%" stop-color="var(--primary)" />
+                                            <stop offset="100%" stop-color="var(--primary-dark)" />
+                                        </linearGradient>
+                                    </defs>
+                                </svg>
+                                <div class="logo-text">
+                                    <div class="logo-title">YOUR</div>
+                                    <div class="logo-subtitle">COMPANY</div>
+                                </div>
+                            </div>
+                            <!-- Uploaded Custom Logo Image -->
+                            <img src="" alt="Custom Company Logo" class="logo-uploaded-img" id="view-logo-uploaded-1" style="display: none;">
+                        </div>
+                        <div class="header-slant-accent"></div>
+                    </header>
+
+                    <!-- Letter Metadata -->
+                    <div class="doc-metadata">
+                        <div class="metadata-date" id="view-tanggal">Kota Fiktif, 08 Mei 2026</div>
+                        
+                        <div class="metadata-table">
+                            <div class="metadata-row">
+                                <div class="metadata-label">No</div>
+                                <div class="metadata-separator">:</div>
+                                <div class="metadata-value" id="view-no">14/SPH-DUMMY/V/2026</div>
+                            </div>
+                            <div class="metadata-row">
+                                <div class="metadata-label">Perihal</div>
+                                <div class="metadata-separator">:</div>
+                                <div class="metadata-value font-bold" id="view-perihal">Penawaran Harga</div>
+                            </div>
+                            <div class="metadata-row">
+                                <div class="metadata-label">Lampiran</div>
+                                <div class="metadata-separator">:</div>
+                                <div class="metadata-value" id="view-lampiran">Spesifikasi dan Rincian Harga (1 Lembar)</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Client Info -->
+                    <div class="doc-recipient">
+                        <p>Kepada Yth,</p>
+                        <p class="font-bold" id="view-klien-nama">PT. ABC</p>
+                        <p id="view-klien-alamat">di Tempat</p>
+                    </div>
+
+                    <!-- Document Body / Narrative -->
+                    <div class="doc-body">
+                        <p class="greetings" id="view-narasi-pembuka">Dengan Hormat,</p>
+                        <div class="narrative-content" id="view-narasi-body">
+                            Berdasarkan informasi yang kami dapat adanya kebutuhan untuk Penawaran Harga, maka bersama ini kami bermaksud untuk mengajukan Surat Penawaran Harga kepada Bapak/Ibu untuk pekerjaan tersebut dengan spesifikasi pekerjaan dan rincian harga terlampir, serta harga tersebut BELUM termasuk ketentuan pajak yang berlaku.
+                        </div>
+                        <p class="closing" id="view-narasi-penutup">
+                            Demikian Surat Penawaran Harga ini kami sampaikan. Atas perhatian serta kerjasamanya, kami ucapkan terima kasih.
+                        </p>
+                    </div>
+
+                    <!-- Signature & Stamp Block -->
+                    <div class="signature-block">
+                        <p class="sig-title">Hormat Kami,</p>
+                        <p class="sig-company font-bold">PT. YOUR COMPANY NAME</p>
+                        
+                        <div class="sig-badge-container">
+                            <!-- Visual Stamp -->
+                            <div class="stempel-wrapper" id="view-stamp">
+                                <!-- Default SVG Stamp -->
+                                <div class="stamp-default-svg" id="view-stamp-default-1">
+                                    <svg width="130" height="130" viewBox="0 0 150 150" xmlns="http://www.w3.org/2000/svg">
+                                        <circle cx="75" cy="75" r="70" fill="none" stroke="var(--primary)" stroke-width="2.5" opacity="0.85"/>
+                                        <circle cx="75" cy="75" r="64" fill="none" stroke="var(--primary)" stroke-width="1.2" opacity="0.85"/>
+                                        <path id="stampTextPathUpper" d="M 18,75 A 57,57 0 0,1 132,75" fill="none" />
+                                        <path id="stampTextPathLower" d="M 132,75 A 57,57 0 0,1 18,75" fill="none" />
+                                        <text font-family="'Plus Jakarta Sans', sans-serif" font-size="9" font-weight="800" fill="var(--primary)" letter-spacing="2" opacity="0.85">
+                                            <textPath href="#stampTextPathUpper" startOffset="50%" text-anchor="middle">
+                                                YOUR COMPANY NAME
+                                            </textPath>
+                                        </text>
+                                        <g transform="translate(56, 52) scale(0.38)" opacity="0.85">
+                                            <path d="M15 15C15 12 17 10 20 10H38C40 10 42 12 42 15V43H58V15C58 12 60 10 62 10H80C82 10 85 12 85 15V85C85 88 82 90 80 90H62C60 90 58 88 58 85V57H42V85C42 88 40 90 38 90H20C17 90 15 88 15 85V15Z" fill="var(--primary)"/>
+                                        </g>
+                                        <text x="75" y="112" font-family="'Plus Jakarta Sans', sans-serif" font-size="9" font-weight="700" fill="var(--primary)" text-anchor="middle" letter-spacing="1" opacity="0.85">2024</text>
+                                    </svg>
+                                </div>
+                                <!-- Custom Uploaded Stamp Image -->
+                                <img src="" alt="Custom Stamp" class="stamp-uploaded-img" id="view-stamp-uploaded-1" style="display: none;">
+                            </div>
+
+                            <!-- Visual Signature -->
+                            <div class="signature-image" id="view-sig">
+                                <!-- Default SVG Signature -->
+                                <div class="sig-default-svg" id="view-sig-default-1">
+                                    <svg width="170" height="85" viewBox="0 0 200 100" xmlns="http://www.w3.org/2000/svg">
+                                        <path d="M20,60 Q40,25 65,45 T110,35 T145,55 T180,40 M60,35 C50,60 85,75 100,55 C115,35 130,55 125,70 M45,50 L160,48" 
+                                              fill="none" stroke="#1d4ed8" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" opacity="0.85"/>
+                                    </svg>
+                                </div>
+                                <!-- Custom Uploaded Signature Image -->
+                                <img src="" alt="Custom Signature" class="sig-uploaded-img" id="view-sig-uploaded-1" style="display: none;">
+                            </div>
+                        </div>
+
+                        <div class="sig-person">
+                            <p class="font-bold underline" id="view-signer-name">Nama Penandatangan</p>
+                            <p class="signer-title" id="view-signer-role">Jabatan</p>
+                        </div>
+                    </div>
+
+                    <!-- Footer Kop Surat -->
+                    <footer class="doc-footer">
+                        <div class="footer-slant-accent"></div>
+                        <div class="footer-info">
+                            <svg class="pin-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                                <circle cx="12" cy="10" r="3"></circle>
+                            </svg>
+                            <span id="view-company-address">Jl. Alamat Dummy No. 123, Kota Fiktif, Provinsi - 12345</span>
+                        </div>
+                    </footer>
+                </div>
+
+                <!-- PAGE 2: SPESIFIKASI PEKERJAAN & HARGA (ANNEX) -->
+                <div class="a4-page" id="page-2">
+                    <!-- Top geometric background accents -->
+                    <div class="page-top-accent"></div>
+                    
+                    <!-- Header Kop Surat -->
+                    <header class="doc-header">
+                        <div class="logo-container" id="view-logo-container-2">
+                            <!-- Default Vector Logo -->
+                            <div class="logo-default-wrapper" id="view-logo-default-2" style="display: flex; align-items: center; gap: 12px;">
+                                <svg class="heksa-logo" width="60" height="60" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M15 15C15 12.2386 17.2386 10 20 10H38C40.7614 10 43 12.2386 43 15V43H57V15C57 12.2386 59.2386 10 62 10H80C82.7614 10 85 12.2386 85 15V85C85 87.7614 82.7614 90 80 90H62C59.2386 90 57 87.7614 57 85V57H43V85C43 87.7614 40.7614 90 38 90H20C17.2386 90 15 87.7614 15 85V15Z" fill="url(#headerGrad2)"/>
+                                    <defs>
+                                        <linearGradient id="headerGrad2" x1="15" y1="10" x2="85" y2="90" gradientUnits="userSpaceOnUse">
+                                            <stop offset="0%" stop-color="var(--primary-light)" />
+                                            <stop offset="50%" stop-color="var(--primary)" />
+                                            <stop offset="100%" stop-color="var(--primary-dark)" />
+                                        </linearGradient>
+                                    </defs>
+                                </svg>
+                                <div class="logo-text">
+                                    <div class="logo-title">YOUR</div>
+                                    <div class="logo-subtitle">COMPANY</div>
+                                </div>
+                            </div>
+                            <!-- Uploaded Custom Logo Image -->
+                            <img src="" alt="Custom Company Logo" class="logo-uploaded-img" id="view-logo-uploaded-2" style="display: none;">
+                        </div>
+                        <div class="header-slant-accent"></div>
+                    </header>
+
+                    <!-- Annex Title -->
+                    <div class="annex-title-container">
+                        <h2>SPESIFIKASI PEKERJAAN DAN RINCIAN HARGA</h2>
+                    </div>
+
+                    <!-- Items Table -->
+                    <div class="table-container">
+                        <table class="items-table" id="view-items-table">
+                            <thead>
+                                <tr>
+                                    <th style="width: 5%;">No.</th>
+                                    <th style="width: 47%;">Deskripsi Pekerjaan</th>
+                                    <th style="width: 18%;">Harga</th>
+                                    <th style="width: 8%;">Qty</th>
+                                    <th style="width: 22%;">Total</th>
+                                </tr>
+                            </thead>
+                            <tbody id="view-table-body">
+                                <!-- Dynamic rows will render here -->
+                            </tbody>
+                            <tfoot id="view-tfoot-grand-total">
+                                <tr>
+                                    <td colspan="4" class="text-center font-bold">Total</td>
+                                    <td class="font-bold text-right" id="view-grand-total">Rp 0</td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+
+                    <!-- Notes Section -->
+                    <div class="notes-section">
+                        <p class="notes-title font-bold">Catatan :</p>
+                        <ol class="notes-list" id="view-notes-list">
+                            <!-- Dynamic notes will render here -->
+                        </ol>
+                    </div>
+
+                    <!-- Signature & Stamp Block -->
+                    <div class="signature-block">
+                        <p class="sig-title">Hormat Kami,</p>
+                        <p class="sig-company font-bold">PT. YOUR COMPANY NAME</p>
+                        
+                        <div class="sig-badge-container">
+                            <!-- Visual Stamp -->
+                            <div class="stempel-wrapper" id="view-stamp-2">
+                                <!-- Default SVG Stamp -->
+                                <div class="stamp-default-svg" id="view-stamp-default-2">
+                                    <svg width="130" height="130" viewBox="0 0 150 150" xmlns="http://www.w3.org/2000/svg">
+                                        <circle cx="75" cy="75" r="70" fill="none" stroke="var(--primary)" stroke-width="2.5" opacity="0.85"/>
+                                        <circle cx="75" cy="75" r="64" fill="none" stroke="var(--primary)" stroke-width="1.2" opacity="0.85"/>
+                                        <path id="stampTextPathUpper2" d="M 18,75 A 57,57 0 0,1 132,75" fill="none" />
+                                        <path id="stampTextPathLower2" d="M 132,75 A 57,57 0 0,1 18,75" fill="none" />
+                                        <text font-family="'Plus Jakarta Sans', sans-serif" font-size="9" font-weight="800" fill="var(--primary)" letter-spacing="2" opacity="0.85">
+                                            <textPath href="#stampTextPathUpper2" startOffset="50%" text-anchor="middle">
+                                                YOUR COMPANY NAME
+                                            </textPath>
+                                        </text>
+                                        <g transform="translate(56, 52) scale(0.38)" opacity="0.85">
+                                            <path d="M15 15C15 12 17 10 20 10H38C40 10 42 12 42 15V43H58V15C58 12 60 10 62 10H80C82 10 85 12 85 15V85C85 88 82 90 80 90H62C60 90 58 88 58 85V57H42V85C42 88 40 90 38 90H20C17 90 15 88 15 85V15Z" fill="var(--primary)"/>
+                                        </g>
+                                        <text x="75" y="112" font-family="'Plus Jakarta Sans', sans-serif" font-size="9" font-weight="700" fill="var(--primary)" text-anchor="middle" letter-spacing="1" opacity="0.85">2024</text>
+                                    </svg>
+                                </div>
+                                <!-- Custom Uploaded Stamp Image -->
+                                <img src="" alt="Custom Stamp" class="stamp-uploaded-img" id="view-stamp-uploaded-2" style="display: none;">
+                            </div>
+
+                            <!-- Visual Signature -->
+                            <div class="signature-image" id="view-sig-2">
+                                <!-- Default SVG Signature -->
+                                <div class="sig-default-svg" id="view-sig-default-2">
+                                    <svg width="170" height="85" viewBox="0 0 200 100" xmlns="http://www.w3.org/2000/svg">
+                                        <path d="M20,60 Q40,25 65,45 T110,35 T145,55 T180,40 M60,35 C50,60 85,75 100,55 C115,35 130,55 125,70 M45,50 L160,48" 
+                                              fill="none" stroke="#1d4ed8" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" opacity="0.85"/>
+                                    </svg>
+                                </div>
+                                <!-- Custom Uploaded Signature Image -->
+                                <img src="" alt="Custom Signature" class="sig-uploaded-img" id="view-sig-uploaded-2" style="display: none;">
+                            </div>
+                        </div>
+
+                        <div class="sig-person">
+                            <p class="font-bold underline" id="view-signer-name-2">Nama Penandatangan</p>
+                            <p class="signer-title" id="view-signer-role-2">Jabatan</p>
+                        </div>
+                    </div>
+
+                    <!-- Footer Kop Surat -->
+                    <footer class="doc-footer">
+                        <div class="footer-slant-accent"></div>
+                        <div class="footer-info">
+                            <svg class="pin-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                                <circle cx="12" cy="10" r="3"></circle>
+                            </svg>
+                            <span id="view-company-address-2">Jl. Alamat Dummy No. 123, Kota Fiktif, Provinsi - 12345</span>
+                        </div>
+                    </footer>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
