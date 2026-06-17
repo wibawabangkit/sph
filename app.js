@@ -1311,21 +1311,24 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     const reloadPwaBtn = document.getElementById('btn-reload-pwa');
-    if (reloadPwaBtn) {
-        reloadPwaBtn.addEventListener('click', () => {
-            if(confirm("Muat ulang aplikasi untuk mendapatkan update terbaru?\n\n(Tenang saja, data yang sudah Anda ketik akan tetap aman tersimpan)")) {
-                if ('serviceWorker' in navigator) {
-                    navigator.serviceWorker.getRegistrations().then(function(registrations) {
-                        for(let registration of registrations) {
-                            registration.unregister();
-                        }
-                    }).then(() => {
-                        window.location.reload(true);
-                    });
-                } else {
+    const forceReloadBtn = document.getElementById('btn-force-reload');
+    
+    const triggerReload = () => {
+        if(confirm("Muat ulang aplikasi untuk mendapatkan update terbaru?\n\n(Tenang saja, data yang sudah Anda ketik akan tetap aman tersimpan)")) {
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.getRegistrations().then(function(registrations) {
+                    for(let registration of registrations) {
+                        registration.unregister();
+                    }
+                }).then(() => {
                     window.location.reload(true);
-                }
+                });
+            } else {
+                window.location.reload(true);
             }
-        });
-    }
+        }
+    };
+
+    if (reloadPwaBtn) reloadPwaBtn.addEventListener('click', triggerReload);
+    if (forceReloadBtn) forceReloadBtn.addEventListener('click', triggerReload);
 });
