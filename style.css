@@ -965,7 +965,7 @@ textarea {
 @media print {
     @page {
         size: A4 portrait;
-        margin: 0 !important; 
+        margin: 0 !important; /* Will hide headers on Chrome/Android, but Safari iOS ignores this */
     }
 
     html, body {
@@ -973,8 +973,8 @@ textarea {
         color: #000000 !important;
         margin: 0 !important;
         padding: 0 !important;
-        width: 209mm !important; 
-        max-width: 209mm !important;
+        width: 100% !important;
+        max-width: 195mm !important; /* 195mm is safely inside iOS forced margins */
         overflow: visible !important;
     }
 
@@ -989,8 +989,8 @@ textarea {
         padding: 0 !important;
         border: none !important;
         box-shadow: none !important;
-        width: 209mm !important;
-        max-width: 209mm !important;
+        width: 100% !important;
+        max-width: 195mm !important;
         overflow: visible !important;
     }
 
@@ -1002,18 +1002,18 @@ textarea {
         margin: 0 auto !important;
         border: none !important;
         box-shadow: none !important;
-        width: 209mm !important;
-        max-width: 209mm !important;
-        height: 295mm !important; 
-        max-height: 295mm !important;
+        width: 100% !important;
+        max-width: 195mm !important;
+        height: auto !important; /* Let content dictate height to prevent blank pages */
+        min-height: 270mm !important; 
         page-break-after: always !important;
         page-break-inside: avoid !important;
-        padding: 15mm !important; 
+        padding: 10mm !important; /* Reduced padding since Safari adds its own margins */
         box-sizing: border-box !important;
         background-color: #ffffff !important;
         color: #000000 !important;
         position: relative !important;
-        overflow: hidden !important; 
+        overflow: visible !important; 
     }
 
     .a4-page:last-child {
