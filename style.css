@@ -965,7 +965,7 @@ textarea {
 @media print {
     @page {
         size: A4 portrait;
-        margin: 0 !important; /* Will hide headers on Chrome/Android, but Safari iOS ignores this */
+        margin: 0 !important; 
     }
 
     html, body {
@@ -974,7 +974,7 @@ textarea {
         margin: 0 !important;
         padding: 0 !important;
         width: 100% !important;
-        max-width: 195mm !important; /* 195mm is safely inside iOS forced margins */
+        height: 100% !important; /* Force body to exact page height */
         overflow: visible !important;
     }
 
@@ -990,7 +990,7 @@ textarea {
         border: none !important;
         box-shadow: none !important;
         width: 100% !important;
-        max-width: 195mm !important;
+        height: 100% !important;
         overflow: visible !important;
     }
 
@@ -999,25 +999,26 @@ textarea {
     }
 
     .a4-page {
-        margin: 0 auto !important;
+        margin: 0 !important;
         border: none !important;
         box-shadow: none !important;
         width: 100% !important;
-        max-width: 195mm !important;
-        height: 280mm !important; /* 280mm strictly fits within iOS Safari printable area without triggering a vertical split */
-        max-height: 280mm !important; 
+        height: 100% !important; /* Exactly 1 printed page height */
+        max-height: 100% !important;
         page-break-after: always !important;
+        break-after: page !important;
         page-break-inside: avoid !important;
         padding: 10mm !important; 
         box-sizing: border-box !important;
         background-color: #ffffff !important;
         color: #000000 !important;
         position: relative !important;
-        overflow: hidden !important; /* Clip content inside the page to strictly prevent it from creating a blank follow-up page */
+        overflow: hidden !important; 
     }
 
     .a4-page:last-child {
         page-break-after: auto !important;
+        break-after: auto !important;
     }
 
     /* Keep signature blending clean when printing */
