@@ -965,7 +965,7 @@ textarea {
 @media print {
     @page {
         size: A4 portrait;
-        margin: 0mm !important; /* Menghilangkan margin cetak browser bawaan agar header/footer URL hilang */
+        margin: 0 !important; 
     }
 
     html, body {
@@ -973,8 +973,9 @@ textarea {
         color: #000000 !important;
         margin: 0 !important;
         padding: 0 !important;
-        width: 210mm !important; /* Force browser to use A4 width, not mobile screen width */
-        min-width: 210mm !important;
+        width: 209mm !important; /* 209mm avoids iOS horizontal overflow bug while forcing Android to scale correctly */
+        max-width: 209mm !important;
+        overflow-x: hidden !important;
     }
 
     .no-print {
@@ -988,29 +989,31 @@ textarea {
         padding: 0 !important;
         border: none !important;
         box-shadow: none !important;
-        width: 210mm !important;
+        width: 209mm !important;
+        max-width: 209mm !important;
+        overflow: hidden !important;
     }
 
     .pages-container {
-        transform: none !important; /* Disable any zoom transforms */
+        transform: none !important; 
     }
 
     .a4-page {
-        margin: 0 !important;
+        margin: 0 auto !important;
         border: none !important;
         box-shadow: none !important;
-        width: 210mm !important;
-        height: 297mm !important; /* Strict A4 height */
-        max-width: 210mm !important;
-        max-height: 297mm !important;
+        width: 209mm !important;
+        max-width: 209mm !important;
+        height: 295mm !important; /* 295mm avoids iOS vertical overflow (blank pages) */
+        max-height: 295mm !important;
         page-break-after: always !important;
         page-break-inside: avoid !important;
-        padding: 20mm 15mm 15mm 15mm !important;
+        padding: 15mm !important; /* Slightly reduced padding to ensure fit */
         box-sizing: border-box !important;
         background-color: #ffffff !important;
         color: #000000 !important;
         position: relative !important;
-        overflow: hidden !important; /* Prevent 1px overflow causing blank pages */
+        overflow: hidden !important; 
     }
 
     .a4-page:last-child {
