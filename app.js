@@ -751,4 +751,528 @@ window.addEventListener('DOMContentLoaded', () => {
     loadState();
     renderAll();
     bindGlobalEvents();
+    initChatbot();
+});
+
+/* ==========================================
+   CHATBOT ENGINE (INTENT-BASED)
+   ========================================== */
+let currentStepId = "main_menu";
+let currentItemIndex = 0; 
+
+const chatFlow = {
+    "main_menu": {
+        botText: "Halo! Apa bagian Quotation yang ingin Anda isi atau perbarui?",
+        expectedInput: "none",
+        buttons: [
+            { text: "🏢 Kop Perusahaan", action: () => goToStep("corp_name") },
+            { text: "👥 Data Klien", action: () => goToStep("klien_nama") },
+            { text: "📄 Info Surat", action: () => goToStep("meta_no") },
+            { text: "✍️ Narasi Surat", action: () => goToStep("narasi_buka") },
+            { text: "➕ Tambah Item", action: () => goToStep("item_desc") },
+            { text: "🔏 TTD & Stempel", action: () => goToStep("ttd_name") },
+            { text: "📝 Tambah Catatan", action: () => goToStep("notes_loop") },
+            { text: "✅ Selesai & Cetak PDF", action: () => goToStep("final"), isPrimary: true }
+        ]
+    },
+    // --- KOP PERUSAHAAN ---
+    "corp_name": {
+        targetId: "view-company-name",
+        botText: "**Siapa nama Perusahaan Anda (Kop Surat)?**",
+        expectedInput: "text",
+        buttons: [{ text: "Lewati", action: () => goToStep("corp_addr") }],
+        action: (answer) => {
+            if(answer !== '-') { appState.companyName = answer; document.getElementById('input-company-name').value = answer; }
+            goToStep("corp_addr");
+        }
+    },
+    "corp_addr": {
+        targetId: "view-company-address",
+        botText: "**Di mana alamat perusahaan Anda?**",
+        expectedInput: "text",
+        buttons: [{ text: "Lewati", action: () => goToStep("corp_logo") }],
+        action: (answer) => {
+            if(answer !== '-') { appState.companyAddress = answer; document.getElementById('input-company-address').value = answer; }
+            goToStep("corp_logo");
+        }
+    },
+    "corp_logo": {
+        targetId: "view-logo-container-1",
+        botText: "**Apakah Anda ingin mengunggah Logo Perusahaan?**",
+        expectedInput: "none",
+        buttons: [
+            { 
+                text: "📁 Pilih Gambar Logo", 
+                isPrimary: true,
+                action: () => {
+                    const input = document.getElementById('input-upload-logo');
+                    input.click();
+                    const onChange = () => { input.removeEventListener('change', onChange); setTimeout(() => goToStep("main_menu"), 500); };
+                    input.addEventListener('change', onChange);
+                }
+            },
+            { text: "Lewati", action: () => goToStep("main_menu") }
+        ]
+    },
+    // --- KLIEN ---
+    "klien_nama": {
+        targetId: "view-klien-nama",
+        botText: "**Siapa nama perusahaan Klien (Penerima) Anda?**",
+        expectedInput: "text",
+        buttons: [{ text: "Lewati", action: () => goToStep("klien_addr") }],
+        action: (answer) => {
+            if(answer !== '-') { appState.klienNama = answer; document.getElementById('input-klien-nama').value = answer; }
+            goToStep("klien_addr");
+        }
+    },
+    "klien_addr": {
+        targetId: "view-klien-alamat",
+        botText: "**Di mana alamat Klien Anda?**",
+        expectedInput: "text",
+        buttons: [{ text: "Lewati", action: () => goToStep("main_menu") }],
+        action: (answer) => {
+            if(answer !== '-') { appState.klienAlamat = answer; document.getElementById('input-klien-alamat').value = answer; }
+            goToStep("main_menu");
+        }
+    },
+    // --- INFO SURAT ---
+    "meta_no": {
+        targetId: "view-no",
+        botText: "**Berapa Nomor Surat ini?** (Contoh: 01/SPH/2026)",
+        expectedInput: "text",
+        buttons: [{ text: "Lewati", action: () => goToStep("meta_tanggal") }],
+        action: (answer) => {
+            if(answer !== '-') { appState.noSurat = answer; document.getElementById('input-no').value = answer; }
+            goToStep("meta_tanggal");
+        }
+    },
+    "meta_tanggal": {
+        targetId: "view-tanggal",
+        botText: "**Tanggal Surat?** (Contoh: Jakarta, 01 Mei 2026)",
+        expectedInput: "text",
+        buttons: [
+            {
+                text: "📅 Gunakan Hari Ini",
+                action: () => {
+                    const today = new Date();
+                    const options = { year: 'numeric', month: 'long', day: 'numeric' };
+                    const formatted = "Jakarta, " + today.toLocaleDateString('id-ID', options);
+                    appState.tanggal = formatted; 
+                    document.getElementById('input-tanggal').value = formatted;
+                    appendUserMessage(formatted);
+                    goToStep("meta_perihal");
+                }
+            },
+            { text: "Lewati", action: () => goToStep("meta_perihal") }
+        ],
+        action: (answer) => {
+            if(answer !== '-') { appState.tanggal = answer; document.getElementById('input-tanggal').value = answer; }
+            goToStep("meta_perihal");
+        }
+    },
+    "meta_perihal": {
+        targetId: "view-perihal",
+        botText: "**Apa Perihal surat ini?**",
+        expectedInput: "text",
+        buttons: [{ text: "Lewati", action: () => goToStep("meta_lampiran") }],
+        action: (answer) => {
+            if(answer !== '-') { appState.perihal = answer; document.getElementById('input-perihal').value = answer; }
+            goToStep("meta_lampiran");
+        }
+    },
+    "meta_lampiran": {
+        targetId: "view-lampiran",
+        botText: "**Lampiran?**",
+        expectedInput: "text",
+        buttons: [{ text: "Lewati", action: () => goToStep("meta_filename") }],
+        action: (answer) => {
+            if(answer !== '-') { appState.lampiran = answer; document.getElementById('input-lampiran').value = answer; }
+            goToStep("meta_filename");
+        }
+    },
+    "meta_filename": {
+        targetId: "view-tanggal",
+        botText: "**Nama file PDF saat di-save nanti?**",
+        expectedInput: "text",
+        buttons: [{ text: "Lewati", action: () => goToStep("main_menu") }],
+        action: (answer) => {
+            if(answer !== '-') { appState.customFileName = answer; document.getElementById('input-filename').value = answer; }
+            goToStep("main_menu");
+        }
+    },
+    // --- NARASI ---
+    "narasi_buka": {
+        targetId: "view-narasi-pembuka",
+        botText: "**Salam Pembuka?**",
+        expectedInput: "text",
+        buttons: [{ text: "Lewati", action: () => goToStep("narasi_body") }],
+        action: (answer) => {
+            if(answer !== '-') { appState.narasiPembuka = answer; document.getElementById('input-narasi-pembuka').value = answer; }
+            goToStep("narasi_body");
+        }
+    },
+    "narasi_body": {
+        targetId: "view-narasi-body",
+        botText: "**Ketik paragraf utama (isi surat) Anda:**",
+        expectedInput: "text",
+        buttons: [{ text: "Lewati", action: () => goToStep("narasi_tutup") }],
+        action: (answer) => {
+            if(answer !== '-') { appState.narasiBody = answer; document.getElementById('input-narasi-body').value = answer; }
+            goToStep("narasi_tutup");
+        }
+    },
+    "narasi_tutup": {
+        targetId: "view-narasi-penutup",
+        botText: "**Ketik paragraf penutup surat Anda:**",
+        expectedInput: "text",
+        buttons: [{ text: "Lewati", action: () => goToStep("main_menu") }],
+        action: (answer) => {
+            if(answer !== '-') { appState.narasiPenutup = answer; document.getElementById('input-narasi-penutup').value = answer; }
+            goToStep("main_menu");
+        }
+    },
+    // --- TTD ---
+    "ttd_name": {
+        targetId: "view-signer-name",
+        botText: "**Siapa nama Penandatangan surat ini?**",
+        expectedInput: "text",
+        buttons: [{ text: "Lewati", action: () => goToStep("ttd_role") }],
+        action: (answer) => {
+            if(answer !== '-') { appState.signerName = answer; document.getElementById('input-signer-name').value = answer; }
+            goToStep("ttd_role");
+        }
+    },
+    "ttd_role": {
+        targetId: "view-signer-role",
+        botText: "**Apa jabatan Penandatangan?**",
+        expectedInput: "text",
+        buttons: [{ text: "Lewati", action: () => goToStep("ttd_stamp") }],
+        action: (answer) => {
+            if(answer !== '-') { appState.signerRole = answer; document.getElementById('input-signer-role').value = answer; }
+            goToStep("ttd_stamp");
+        }
+    },
+    "ttd_stamp": {
+        targetId: "view-stamp",
+        botText: "**Unggah Stempel Perusahaan?**",
+        expectedInput: "none",
+        buttons: [
+            { text: "📁 Pilih Stempel", isPrimary: true, action: () => { const input = document.getElementById('input-upload-stamp'); input.click(); const onChange = () => { input.removeEventListener('change', onChange); setTimeout(() => goToStep("ttd_sig"), 500); }; input.addEventListener('change', onChange); } },
+            { text: "Lewati", action: () => goToStep("ttd_sig") }
+        ]
+    },
+    "ttd_sig": {
+        targetId: "view-sig",
+        botText: "**Unggah Tanda Tangan Basah?**",
+        expectedInput: "none",
+        buttons: [
+            { text: "📁 Pilih TTD", isPrimary: true, action: () => { const input = document.getElementById('input-upload-sig'); input.click(); const onChange = () => { input.removeEventListener('change', onChange); setTimeout(() => goToStep("ttd_adjust"), 500); }; input.addEventListener('change', onChange); } },
+            { text: "Lewati", action: () => goToStep("ttd_adjust") }
+        ]
+    },
+    "ttd_adjust": {
+        targetId: "view-sig",
+        botText: "**Atur Posisi & Ukuran Tanda Tangan:**<br>Silakan klik tombol di bawah ini sampai posisinya pas.",
+        expectedInput: "none",
+        onEnter: () => {
+            // Shrink chat
+            document.getElementById('chatbot-window').classList.add('chat-shrink');
+        },
+        onLeave: () => {
+            document.getElementById('chatbot-window').classList.remove('chat-shrink');
+        },
+        buttons: [
+            { 
+                text: "⬅️ Kiri", 
+                keepActive: true,
+                action: () => { 
+                    appState.sigLeft = (appState.sigLeft || 10) - 10; 
+                    saveState(); renderAll(); 
+                    document.getElementById('input-sig-left').value = appState.sigLeft;
+                    document.getElementById('sig-left-val').textContent = appState.sigLeft;
+                } 
+            },
+            { 
+                text: "➡️ Kanan", 
+                keepActive: true,
+                action: () => { 
+                    appState.sigLeft = (appState.sigLeft || 10) + 10; 
+                    saveState(); renderAll(); 
+                    document.getElementById('input-sig-left').value = appState.sigLeft;
+                    document.getElementById('sig-left-val').textContent = appState.sigLeft;
+                } 
+            },
+            { 
+                text: "➕ Besar", 
+                keepActive: true,
+                action: () => { 
+                    appState.sigWidth = (appState.sigWidth || 170) + 10; 
+                    saveState(); renderAll(); 
+                    document.getElementById('input-sig-width').value = appState.sigWidth;
+                    document.getElementById('sig-width-val').textContent = appState.sigWidth;
+                } 
+            },
+            { 
+                text: "➖ Kecil", 
+                keepActive: true,
+                action: () => { 
+                    appState.sigWidth = Math.max(50, (appState.sigWidth || 170) - 10); 
+                    saveState(); renderAll(); 
+                    document.getElementById('input-sig-width').value = appState.sigWidth;
+                    document.getElementById('sig-width-val').textContent = appState.sigWidth;
+                } 
+            },
+            { text: "✅ Selesai", isPrimary: true, action: () => goToStep("main_menu") }
+        ]
+    },
+    // --- ITEMS ---
+    "item_desc": {
+        targetId: "view-items-table",
+        botText: "**Tabel Item:** Apa nama barang/jasa yang ditawarkan?",
+        expectedInput: "text",
+        buttons: [{ text: "Batal / Kembali", action: () => { appState.items.pop(); goToStep("main_menu"); } }],
+        onEnter: () => {
+            appState.items.push({ deskripsi: "", harga: 0, qty: 1 });
+            currentItemIndex = appState.items.length - 1;
+        },
+        action: (answer) => {
+            if(answer === '-') {
+                appState.items.pop();
+                goToStep("main_menu");
+                return;
+            }
+            appState.items[currentItemIndex].deskripsi = answer;
+            goToStep("item_qty");
+        }
+    },
+    "item_qty": {
+        targetId: "view-items-table",
+        botText: "Berapa **jumlah (qty)** untuk item tersebut?",
+        expectedInput: "number",
+        buttons: [{ text: "Lewati (Gunakan 1)", action: () => { appState.items[currentItemIndex].qty = 1; goToStep("item_harga"); } }],
+        action: (answer) => {
+            appState.items[currentItemIndex].qty = parseInt(answer) || 1;
+            goToStep("item_harga");
+        }
+    },
+    "item_harga": {
+        targetId: "view-items-table",
+        botText: "Berapa **harga satuan** (dalam Rupiah)?",
+        expectedInput: "number",
+        buttons: [{ text: "Lewati (Harga 0)", action: () => { appState.items[currentItemIndex].harga = 0; saveState(); renderAll(); appendBotMessage("Item berhasil ditambahkan!", [{ text: "+ Tambah Item Lain", action: () => goToStep("item_desc") }, { text: "Kembali ke Menu", action: () => goToStep("main_menu") }]); } }],
+        action: (answer) => {
+            appState.items[currentItemIndex].harga = parseFloat(answer) || 0;
+            saveState(); renderAll();
+            appendBotMessage("Item berhasil ditambahkan!", [
+                { text: "+ Tambah Item Lain", action: () => goToStep("item_desc") },
+                { text: "Kembali ke Menu", action: () => goToStep("main_menu") }
+            ]);
+        }
+    },
+    // --- NOTES ---
+    "notes_loop": {
+        targetId: "view-notes-list",
+        botText: "**Catatan Kaki:** Ketik satu catatan tambahan untuk Quotation ini.",
+        expectedInput: "text",
+        buttons: [{ text: "Selesai / Kembali", action: () => goToStep("main_menu") }],
+        action: (answer) => {
+            if(answer === '-') {
+                goToStep("main_menu");
+                return;
+            }
+            appState.notes.push(answer);
+            saveState(); renderAll();
+            appendBotMessage("Catatan ditambahkan!", [
+                { text: "+ Tambah Catatan Lagi", action: () => goToStep("notes_loop") },
+                { text: "Kembali ke Menu", action: () => goToStep("main_menu") }
+            ]);
+        }
+    },
+    // --- FINAL ---
+    "final": {
+        botText: "Sempurna! Anda bisa langsung mengunduh PDF-nya sekarang atau kembali ke menu untuk mengedit bagian lain.",
+        expectedInput: "none",
+        isFinal: true,
+        buttons: [
+            { text: "Unduh PDF Sekarang", action: () => window.print(), isPrimary: true },
+            { text: "Kembali ke Menu", action: () => goToStep("main_menu") }
+        ]
+    }
+};
+
+function goToStep(stepId) {
+    const prevFlow = chatFlow[currentStepId];
+    if(prevFlow && prevFlow.onLeave) prevFlow.onLeave();
+    
+    currentStepId = stepId;
+    const flow = chatFlow[currentStepId];
+    
+    if(flow.onEnter) flow.onEnter();
+    
+    // Auto-scroll to the target element if specified
+    if(flow.targetId) {
+        setTimeout(() => {
+            const el = document.getElementById(flow.targetId);
+            if(el) {
+                // Scroll into view at the top of the screen to avoid the bottom chat window
+                el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+        }, 150);
+    }
+    
+    nextChat();
+}
+
+function initChatbot() {
+    const fab = document.getElementById('chatbot-fab');
+    const win = document.getElementById('chatbot-window');
+    const closeBtn = document.getElementById('btn-close-chat');
+    const resetBtn = document.getElementById('btn-reset-chat');
+    const inputField = document.getElementById('chatbot-input');
+    const sendBtn = document.getElementById('chatbot-send');
+    const msgContainer = document.getElementById('chatbot-messages');
+
+    // Toggle Window
+    fab.addEventListener('click', () => {
+        win.classList.add('open');
+        // Start conversation if empty
+        if(currentStepId === "main_menu" && msgContainer.children.length === 0) {
+            goToStep("main_menu");
+        }
+        setTimeout(() => inputField.focus(), 300);
+    });
+
+    closeBtn.addEventListener('click', () => {
+        win.classList.remove('open');
+    });
+
+    // Reset Chat
+    resetBtn.addEventListener('click', () => {
+        if(confirm("Apakah Anda ingin kembali ke Menu Utama?")) {
+            msgContainer.innerHTML = '';
+            goToStep("main_menu");
+            inputField.focus();
+        }
+    });
+
+    // Send Message
+    function sendMessage() {
+        const text = inputField.value.trim();
+        if(!text) return;
+        
+        appendUserMessage(text);
+        inputField.value = "";
+        
+        // Process Answer
+        const currentFlow = chatFlow[currentStepId];
+        if(currentFlow && currentFlow.action) {
+            currentFlow.action(text);
+            saveState();
+            renderAll(); // Sync visually to preview
+        }
+    }
+
+    sendBtn.addEventListener('click', sendMessage);
+    inputField.addEventListener('keypress', (e) => {
+        if(e.key === 'Enter') sendMessage();
+    });
+}
+
+function nextChat() {
+    const flow = chatFlow[currentStepId];
+    if(flow) {
+        // Toggle input visibility for file uploads or final steps
+        const inputArea = document.querySelector('.chatbot-input-area');
+        if(flow.expectedInput === "none" || flow.isFinal) {
+            inputArea.style.display = 'none';
+        } else {
+            inputArea.style.display = 'flex';
+            setTimeout(() => document.getElementById('chatbot-input').focus(), 100);
+        }
+
+        if(flow.buttons) {
+            appendBotMessage(flow.botText, flow.buttons);
+        } else {
+            appendBotMessage(flow.botText);
+        }
+    }
+}
+
+function appendBotMessage(text, buttons = []) {
+    const msgContainer = document.getElementById('chatbot-messages');
+    const bubble = document.createElement('div');
+    bubble.className = 'chat-bubble chat-bot';
+    
+    // Parse bold text
+    bubble.innerHTML = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+    
+    if(buttons.length > 0) {
+        const actionDiv = document.createElement('div');
+        actionDiv.className = 'chatbot-actions';
+        actionDiv.style.flexWrap = 'wrap'; // Allow buttons like D-Pad to wrap nicely
+        
+        buttons.forEach(btn => {
+            const btnEl = document.createElement('button');
+            btnEl.className = 'chat-action-btn' + (btn.isPrimary ? ' btn-primary-action' : '');
+            btnEl.textContent = btn.text;
+            btnEl.addEventListener('click', () => {
+                if(btn.action) {
+                    btn.action();
+                }
+                if(!btn.keepActive) {
+                    // remove buttons after click
+                    actionDiv.style.opacity = '0.5';
+                    actionDiv.style.pointerEvents = 'none';
+                }
+            });
+            actionDiv.appendChild(btnEl);
+        });
+        bubble.appendChild(actionDiv);
+    }
+    
+    msgContainer.appendChild(bubble);
+    scrollToBottom();
+}
+
+function appendUserMessage(text) {
+    const msgContainer = document.getElementById('chatbot-messages');
+    const bubble = document.createElement('div');
+    bubble.className = 'chat-bubble chat-user';
+    bubble.textContent = text;
+    msgContainer.appendChild(bubble);
+    scrollToBottom();
+}
+
+function scrollToBottom() {
+    const msgContainer = document.getElementById('chatbot-messages');
+    msgContainer.scrollTop = msgContainer.scrollHeight;
+}
+
+// --- PWA INSTALLATION LOGIC ---
+let deferredPrompt;
+window.addEventListener('beforeinstallprompt', (e) => {
+    // Prevent default mini-infobar from appearing
+    e.preventDefault();
+    deferredPrompt = e;
+});
+
+document.addEventListener('DOMContentLoaded', () => {
+    const installBtn = document.getElementById('btn-install');
+    if (installBtn) {
+        installBtn.addEventListener('click', async () => {
+            if (deferredPrompt) {
+                // Show the browser's install prompt
+                deferredPrompt.prompt();
+                // Wait for the user to respond
+                const { outcome } = await deferredPrompt.userChoice;
+                if (outcome === 'accepted') {
+                    console.log('User accepted the install prompt');
+                    installBtn.style.display = 'none';
+                }
+                deferredPrompt = null;
+            } else {
+                alert("Instalasi otomatis sedang tidak tersedia.\n\nJika Anda di HP: Tekan tombol menu titik tiga (⋮) di browser lalu pilih 'Add to Home Screen' atau 'Install App'.\nJika di Safari/iPhone: Tekan tombol Share (Bagikan) di bawah lalu pilih 'Add to Home Screen'.");
+            }
+        });
+    }
 });
