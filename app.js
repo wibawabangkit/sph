@@ -181,15 +181,17 @@ function syncTextFields() {
     document.getElementById('view-sig').style.visibility = appState.showSig ? 'visible' : 'hidden';
     document.getElementById('view-sig-2').style.visibility = appState.showSig ? 'visible' : 'hidden';
 
-    // Apply dynamic signature sizing proportionally (aspect ratio 2:1) and positioning
+    // Apply dynamic signature sizing proportionally (aspect ratio 2:1)
     const currentSigHeight = currentSigWidth / 2;
     document.getElementById('view-sig').style.width = currentSigWidth + 'px';
     document.getElementById('view-sig').style.height = currentSigHeight + 'px';
-    document.getElementById('view-sig').style.left = currentSigLeft + 'px';
     
     document.getElementById('view-sig-2').style.width = currentSigWidth + 'px';
     document.getElementById('view-sig-2').style.height = currentSigHeight + 'px';
-    document.getElementById('view-sig-2').style.left = currentSigLeft + 'px';
+    
+    // Apply position shifting to the entire container (TTD + Stempel)
+    document.getElementById('view-sig-container-1').style.transform = `translateX(${currentSigLeft}px)`;
+    document.getElementById('view-sig-container-2').style.transform = `translateX(${currentSigLeft}px)`;
 
     // Toggle CSS class to hide grand total
     const itemsTable = document.getElementById('view-items-table');
@@ -972,7 +974,7 @@ const chatFlow = {
     },
     "ttd_adjust": {
         targetId: "view-sig",
-        botText: "**Atur Posisi & Ukuran Tanda Tangan:**<br>Silakan klik tombol di bawah ini sampai posisinya pas.",
+        botText: "**Atur Posisi & Ukuran TTD + Stempel:**<br>Silakan klik tombol di bawah ini sampai posisinya pas.",
         expectedInput: "none",
         onEnter: () => {
             // Shrink chat
@@ -986,7 +988,7 @@ const chatFlow = {
                 text: "⬅️ Kiri", 
                 keepActive: true,
                 action: () => { 
-                    appState.sigLeft = (appState.sigLeft || 10) - 10; 
+                    appState.sigLeft = (appState.sigLeft || 10) - 20; 
                     saveState(); renderAll(); 
                     document.getElementById('input-sig-left').value = appState.sigLeft;
                     document.getElementById('sig-left-val').textContent = appState.sigLeft;
@@ -996,7 +998,7 @@ const chatFlow = {
                 text: "➡️ Kanan", 
                 keepActive: true,
                 action: () => { 
-                    appState.sigLeft = (appState.sigLeft || 10) + 10; 
+                    appState.sigLeft = (appState.sigLeft || 10) + 20; 
                     saveState(); renderAll(); 
                     document.getElementById('input-sig-left').value = appState.sigLeft;
                     document.getElementById('sig-left-val').textContent = appState.sigLeft;
