@@ -973,9 +973,9 @@ textarea {
         color: #000000 !important;
         margin: 0 !important;
         padding: 0 !important;
-        width: 209mm !important; /* 209mm avoids iOS horizontal overflow bug while forcing Android to scale correctly */
+        width: 209mm !important; 
         max-width: 209mm !important;
-        overflow-x: hidden !important;
+        overflow: visible !important;
     }
 
     .no-print {
@@ -991,7 +991,7 @@ textarea {
         box-shadow: none !important;
         width: 209mm !important;
         max-width: 209mm !important;
-        overflow: hidden !important;
+        overflow: visible !important;
     }
 
     .pages-container {
@@ -1004,11 +1004,11 @@ textarea {
         box-shadow: none !important;
         width: 209mm !important;
         max-width: 209mm !important;
-        height: 295mm !important; /* 295mm avoids iOS vertical overflow (blank pages) */
+        height: 295mm !important; 
         max-height: 295mm !important;
         page-break-after: always !important;
         page-break-inside: avoid !important;
-        padding: 15mm !important; /* Slightly reduced padding to ensure fit */
+        padding: 15mm !important; 
         box-sizing: border-box !important;
         background-color: #ffffff !important;
         color: #000000 !important;
