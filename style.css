@@ -1265,12 +1265,13 @@ textarea {
 
 .chatbot-input-area input {
     flex: 1;
+    min-width: 0;
     background-color: var(--editor-card);
     border: 1px solid var(--editor-input-border);
     color: var(--editor-text);
     padding: 12px 16px;
     border-radius: 24px;
-    font-size: 13.5px;
+    font-size: 16px;
     outline: none;
     transition: var(--transition-smooth);
 }
@@ -1280,6 +1281,7 @@ textarea {
 }
 
 .chatbot-send-btn {
+    flex-shrink: 0;
     background-color: var(--primary);
     border: none;
     color: white;

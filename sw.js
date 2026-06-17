@@ -1,4 +1,4 @@
-const CACHE_NAME = 'quotation-v4';
+const CACHE_NAME = 'quotation-v6';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
