@@ -964,8 +964,8 @@ textarea {
 /* --- HIGH FIDELITY PRINT CSS RULES --- */
 @media print {
     @page {
-        size: A4;
-        margin: 0; /* Menghilangkan margin cetak browser bawaan agar pas 1-ke-1 */
+        size: A4 portrait;
+        margin: 0mm !important; /* Menghilangkan margin cetak browser bawaan agar header/footer URL hilang */
     }
 
     html, body {
@@ -973,9 +973,8 @@ textarea {
         color: #000000 !important;
         margin: 0 !important;
         padding: 0 !important;
-        overflow: visible !important;
-        height: auto !important;
-        width: 100% !important;
+        width: 210mm !important; /* Force browser to use A4 width, not mobile screen width */
+        min-width: 210mm !important;
     }
 
     .no-print {
@@ -989,13 +988,11 @@ textarea {
         padding: 0 !important;
         border: none !important;
         box-shadow: none !important;
-        overflow: visible !important;
-        width: 100% !important;
-        height: auto !important;
+        width: 210mm !important;
     }
 
     .pages-container {
-        transform: scale(1) !important; /* Force true scale to printer output */
+        transform: none !important; /* Disable any zoom transforms */
     }
 
     .a4-page {
@@ -1003,18 +1000,21 @@ textarea {
         border: none !important;
         box-shadow: none !important;
         width: 210mm !important;
-        height: 297mm !important;
-        page-break-after: always !important; /* Force clean break to next page */
+        height: 297mm !important; /* Strict A4 height */
+        max-width: 210mm !important;
+        max-height: 297mm !important;
+        page-break-after: always !important;
         page-break-inside: avoid !important;
         padding: 20mm 15mm 15mm 15mm !important;
         box-sizing: border-box !important;
         background-color: #ffffff !important;
         color: #000000 !important;
         position: relative !important;
+        overflow: hidden !important; /* Prevent 1px overflow causing blank pages */
     }
 
     .a4-page:last-child {
-        page-break-after: avoid !important;
+        page-break-after: auto !important;
     }
 
     /* Keep signature blending clean when printing */
