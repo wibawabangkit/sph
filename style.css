@@ -1004,16 +1004,16 @@ textarea {
         box-shadow: none !important;
         width: 100% !important;
         max-width: 195mm !important;
-        height: auto !important; /* Let content dictate height to prevent blank pages */
-        min-height: 270mm !important; 
+        height: 280mm !important; /* 280mm strictly fits within iOS Safari printable area without triggering a vertical split */
+        max-height: 280mm !important; 
         page-break-after: always !important;
         page-break-inside: avoid !important;
-        padding: 10mm !important; /* Reduced padding since Safari adds its own margins */
+        padding: 10mm !important; 
         box-sizing: border-box !important;
         background-color: #ffffff !important;
         color: #000000 !important;
         position: relative !important;
-        overflow: visible !important; 
+        overflow: hidden !important; /* Clip content inside the page to strictly prevent it from creating a blank follow-up page */
     }
 
     .a4-page:last-child {
