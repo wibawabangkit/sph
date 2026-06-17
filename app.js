@@ -21,6 +21,7 @@ const DEFAULT_DATA = {
     showGrandTotal: true,
     sigWidth: 170,
     sigLeft: 10,
+    stampLeft: -15,
     customStamp: null, // Base64 data of custom stamp
     customStampName: "", // File name
     customSig: null,   // Base64 data of custom signature
@@ -146,6 +147,13 @@ function syncTextFields() {
     document.getElementById('input-sig-left').value = currentSigLeft;
     document.getElementById('sig-left-val').textContent = currentSigLeft;
 
+    const currentStampLeft = appState.stampLeft !== undefined ? appState.stampLeft : -15;
+    const stampInput = document.getElementById('input-stamp-left');
+    if (stampInput) {
+        stampInput.value = currentStampLeft;
+        document.getElementById('stamp-left-val').textContent = currentStampLeft;
+    }
+
     // 2. Preview Layout Sync
     document.getElementById('view-no').textContent = appState.noSurat;
     document.getElementById('view-tanggal').textContent = appState.tanggal;
@@ -185,13 +193,19 @@ function syncTextFields() {
     const currentSigHeight = currentSigWidth / 2;
     document.getElementById('view-sig').style.width = currentSigWidth + 'px';
     document.getElementById('view-sig').style.height = currentSigHeight + 'px';
+    document.getElementById('view-sig').style.left = currentSigLeft + 'px';
     
     document.getElementById('view-sig-2').style.width = currentSigWidth + 'px';
     document.getElementById('view-sig-2').style.height = currentSigHeight + 'px';
+    document.getElementById('view-sig-2').style.left = currentSigLeft + 'px';
     
-    // Apply position shifting to the entire container (TTD + Stempel)
-    document.getElementById('view-sig-container-1').style.transform = `translateX(${currentSigLeft}px)`;
-    document.getElementById('view-sig-container-2').style.transform = `translateX(${currentSigLeft}px)`;
+    // Apply position shifting to the stamp
+    document.getElementById('view-stamp').style.left = currentStampLeft + 'px';
+    document.getElementById('view-stamp-2').style.left = currentStampLeft + 'px';
+    
+    // Revert container transform
+    document.getElementById('view-sig-container-1').style.transform = `none`;
+    document.getElementById('view-sig-container-2').style.transform = `none`;
 
     // Toggle CSS class to hide grand total
     const itemsTable = document.getElementById('view-items-table');
@@ -531,12 +545,22 @@ function bindGlobalEvents() {
 
     document.getElementById('input-sig-left').addEventListener('input', (e) => {
         const val = parseInt(e.target.value);
-        appState.sigLeft = val;
         document.getElementById('sig-left-val').textContent = val;
-        document.getElementById('view-sig').style.left = val + 'px';
-        document.getElementById('view-sig-2').style.left = val + 'px';
+        appState.sigLeft = val;
         saveState();
+        renderAll();
     });
+
+    const inputStampLeft = document.getElementById('input-stamp-left');
+    if(inputStampLeft) {
+        inputStampLeft.addEventListener('input', (e) => {
+            const val = parseInt(e.target.value);
+            document.getElementById('stamp-left-val').textContent = val;
+            appState.stampLeft = val;
+            saveState();
+            renderAll();
+        });
+    }
 
     document.getElementById('chk-show-grand-total').addEventListener('change', (e) => {
         appState.showGrandTotal = e.target.checked;
@@ -974,7 +998,7 @@ const chatFlow = {
     },
     "ttd_adjust": {
         targetId: "view-sig",
-        botText: "**Atur Posisi & Ukuran TTD + Stempel:**<br>Silakan klik tombol di bawah ini sampai posisinya pas.",
+        botText: "**Atur Posisi & Ukuran TTD dan Stempel:**<br>Kini Anda bisa mengaturnya secara terpisah.",
         expectedInput: "none",
         onEnter: () => {
             // Shrink chat
@@ -985,43 +1009,51 @@ const chatFlow = {
         },
         buttons: [
             { 
-                text: "⬅️ Kiri", 
+                text: "⬅️ TTD Kiri", 
                 keepActive: true,
                 action: () => { 
                     appState.sigLeft = (appState.sigLeft || 10) - 20; 
                     saveState(); renderAll(); 
-                    document.getElementById('input-sig-left').value = appState.sigLeft;
-                    document.getElementById('sig-left-val').textContent = appState.sigLeft;
                 } 
             },
             { 
-                text: "➡️ Kanan", 
+                text: "➡️ TTD Kanan", 
                 keepActive: true,
                 action: () => { 
                     appState.sigLeft = (appState.sigLeft || 10) + 20; 
                     saveState(); renderAll(); 
-                    document.getElementById('input-sig-left').value = appState.sigLeft;
-                    document.getElementById('sig-left-val').textContent = appState.sigLeft;
                 } 
             },
             { 
-                text: "➕ Besar", 
+                text: "⬅️ Cap Kiri", 
+                keepActive: true,
+                action: () => { 
+                    appState.stampLeft = (appState.stampLeft || -15) - 20; 
+                    saveState(); renderAll(); 
+                } 
+            },
+            { 
+                text: "➡️ Cap Kanan", 
+                keepActive: true,
+                action: () => { 
+                    appState.stampLeft = (appState.stampLeft || -15) + 20; 
+                    saveState(); renderAll(); 
+                } 
+            },
+            { 
+                text: "➕ TTD Besar", 
                 keepActive: true,
                 action: () => { 
                     appState.sigWidth = (appState.sigWidth || 170) + 10; 
                     saveState(); renderAll(); 
-                    document.getElementById('input-sig-width').value = appState.sigWidth;
-                    document.getElementById('sig-width-val').textContent = appState.sigWidth;
                 } 
             },
             { 
-                text: "➖ Kecil", 
+                text: "➖ TTD Kecil", 
                 keepActive: true,
                 action: () => { 
                     appState.sigWidth = Math.max(50, (appState.sigWidth || 170) - 10); 
                     saveState(); renderAll(); 
-                    document.getElementById('input-sig-width').value = appState.sigWidth;
-                    document.getElementById('sig-width-val').textContent = appState.sigWidth;
                 } 
             },
             { text: "✅ Selesai", isPrimary: true, action: () => goToStep("main_menu") }
