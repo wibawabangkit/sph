@@ -11,9 +11,23 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700&family=Playpen+Sans:wght@500;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style.css?v=2.0.0">
 </head>
 <body>
+    <div id="impersonation-banner-container" class="impersonation-banner no-print" style="display:none;">
+        <span>⚠️ Mode Impersonasi Aktif: <strong id="impersonate-target-name">PT. ABC</strong></span>
+        <button type="button" id="btn-stop-impersonate" class="btn-stop-impersonate">Hentikan Impersonasi</button>
+    </div>
+    <div class="nav-modules-bar no-print">
+        <button type="button" class="nav-module-btn active" data-module="quotation">1. 📝 SPH Penawaran</button>
+        <button type="button" class="nav-module-btn" data-module="po">2. 📄 Purchase Order (PO)</button>
+        <button type="button" class="nav-module-btn" data-module="do">3. 🚚 Delivery Order (DO)</button>
+        <button type="button" class="nav-module-btn" data-module="ttb">4. 📦 Tanda Terima Barang (TTB)</button>
+        <button type="button" class="nav-module-btn" data-module="bast">5. 📑 BAST</button>
+        <button type="button" class="nav-module-btn" data-module="invoice">6. 💳 Invoice Penagihan</button>
+        <button type="button" class="nav-module-btn" data-module="receipt">7. 🧾 Kwitansi Pembayaran</button>
+        <button type="button" class="nav-module-btn" data-module="users">👑 User Mgmt (Super Admin)</button>
+    </div>
     <div class="app-container">
         <!-- SIDEBAR EDITOR (Left) -->
         <aside class="sidebar no-print">
@@ -172,14 +186,44 @@
                         </button>
                     </div>
 
-                    <!-- Toggle to show/hide the grand total row -->
-                    <div class="checkbox-group" style="margin-bottom: 16px;">
-                        <label class="toggle-switch">
-                            <input type="checkbox" id="chk-show-grand-total" checked>
-                            <span class="slider"></span>
-                            Tampilkan Total Keseluruhan
-                        </label>
+                    <div class="form-group full-width" style="margin-bottom: 16px;">
+                        <label for="input-annex-title">Judul Halaman Lampiran (Lembar 2)</label>
+                        <input type="text" id="input-annex-title" placeholder="Contoh: SPESIFIKASI PEKERJAAN DAN RINCIAN HARGA">
                     </div>
+
+                    <!-- Toggles for Table Layout -->
+                    <div class="form-grid" style="margin-bottom: 16px;">
+                        <div class="checkbox-group" style="grid-column: span 2;">
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="chk-show-grand-total" checked>
+                                <span class="slider"></span>
+                                Tampilkan Total Keseluruhan
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Word-Style Dynamic Column Designer -->
+                    <details class="column-config-details" open style="margin-bottom: 18px; background: rgba(255,255,255,0.03); border: 1px dashed var(--editor-border); border-radius: 8px; padding: 12px 14px;">
+                        <summary style="cursor: pointer; font-weight: 600; font-size: 13px; color: var(--primary);">
+                            🎨 Desainer Kolom Tabel (Word Style)
+                        </summary>
+                        <div style="margin-top: 12px; display: flex; gap: 8px; margin-bottom: 12px;">
+                            <button type="button" id="btn-add-custom-col" class="btn btn-sm btn-primary" style="flex: 1;">
+                                + Tambah Kolom
+                            </button>
+                            <button type="button" id="btn-balance-cols" class="btn btn-sm btn-secondary" style="flex: 1;">
+                                ⚖️ Auto Balance (100%)
+                            </button>
+                        </div>
+                        
+                        <div id="column-designer-list" class="column-designer-container">
+                            <!-- Dynamic column cards rendered by app.js -->
+                        </div>
+                        
+                        <div id="col-total-width-info" style="font-size: 11px; margin-top: 10px; font-weight: 600; text-align: right; color: var(--primary);">
+                            Total Lebar: <span id="col-total-width-val">100</span>%
+                        </div>
+                    </details>
                     
                     <div id="table-editor-container" class="table-editor-list">
                         <!-- Dynamic rows will be rendered here -->
@@ -464,29 +508,20 @@
 
                     <!-- Annex Title -->
                     <div class="annex-title-container">
-                        <h2>SPESIFIKASI PEKERJAAN DAN RINCIAN HARGA</h2>
+                        <h2 id="view-annex-title">SPESIFIKASI PEKERJAAN DAN RINCIAN HARGA</h2>
                     </div>
 
                     <!-- Items Table -->
                     <div class="table-container">
                         <table class="items-table" id="view-items-table">
-                            <thead>
-                                <tr>
-                                    <th style="width: 5%;">No.</th>
-                                    <th style="width: 47%;">Deskripsi Pekerjaan</th>
-                                    <th style="width: 18%;">Harga</th>
-                                    <th style="width: 8%;">Qty</th>
-                                    <th style="width: 22%;">Total</th>
-                                </tr>
+                            <thead id="view-table-thead">
+                                <!-- Dynamic headers will render here -->
                             </thead>
                             <tbody id="view-table-body">
                                 <!-- Dynamic rows will render here -->
                             </tbody>
                             <tfoot id="view-tfoot-grand-total">
-                                <tr>
-                                    <td colspan="4" class="text-center font-bold">Total</td>
-                                    <td class="font-bold text-right" id="view-grand-total">Rp 0</td>
-                                </tr>
+                                <!-- Dynamic footer row will render here -->
                             </tfoot>
                         </table>
                     </div>
@@ -562,7 +597,11 @@
                     </footer>
                 </div>
             </div>
-        </main>
+    </div>
+
+    <!-- FULL PAGE WORKSPACE VIEW CONTAINER (For PO, DO, TTB, BAST, Invoice, Kwitansi, User Mgmt) -->
+    <div id="module-workspace-view" class="module-workspace-view no-print" style="display: none; padding: 24px; max-width: 1400px; margin: 0 auto;">
+        <!-- Dynamic Workspace Content Loaded by app.js -->
     </div>
 
     <!-- CHATBOT UI -->
@@ -592,7 +631,20 @@
         </div>
     </div>
 
-    <script src="app.js"></script>
+    <!-- MODULE DIALOG MODAL (For PO, DO, TTB, BAST, Invoice, Kwitansi, User Mgmt) -->
+    <div id="module-dialog-modal" class="modal-overlay no-print" style="display: none;">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3 id="modal-title">📋 Judul Modul</h3>
+                <button type="button" id="btn-close-module-modal" class="btn-close-modal">&times;</button>
+            </div>
+            <div id="modal-body" class="modal-body">
+                <!-- Dynamic Content Loaded by app.js -->
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js?v=2.2.0"></script>
     
     <!-- PWA Service Worker -->
     <script>

@@ -1,0 +1,48 @@
+const pool = require('../config/db');
+
+const MOCK_DOS = [];
+
+async function getDOs(req, res) {
+    const companyId = req.tenantCompanyId || 1;
+    try {
+        let rows = [];
+        try {
+            [rows] = await pool.query(`SELECT * FROM delivery_orders WHERE company_id = ? ORDER BY id DESC`, [companyId]);
+        } catch (dbErr) {
+            rows = MOCK_DOS.filter(d => d.company_id == companyId);
+        }
+        return res.json({ success: true, data: rows });
+    } catch (err) {
+        return res.status(500).json({ success: false, message: err.message });
+    }
+}
+
+async function createDO(req, res) {
+    const companyId = req.tenantCompanyId || 1;
+    const { do_no, do_date, quotation_id, customer_name, delivery_address, driver_name, vehicle_no, items, status } = req.body;
+    if (!do_no || !customer_name) {
+        return res.status(400).json({ success: false, message: 'Nomor DO dan Nama Customer wajib diisi.' });
+    }
+
+    try {
+        const itemsJson = JSON.stringify(items || []);
+        try {
+            const [result] = await pool.query(
+                `INSERT INTO delivery_orders (company_id, do_no, do_date, quotation_id, customer_name, delivery_address, driver_name, vehicle_no, items, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+                [companyId, do_no, do_date || new Date().toISOString().split('T')[0], quotation_id || null, customer_name, delivery_address, driver_name, vehicle_no, itemsJson, status || 'Pengiriman']
+            );
+            return res.json({ success: true, message: 'Surat Jalan (DO) berhasil dibuat.', id: result.insertId });
+        } catch (dbErr) {
+            const mock = { id: MOCK_DOS.length + 1, company_id: companyId, do_no, do_date, customer_name, driver_name, vehicle_no, items: items || [] };
+            MOCK_DOS.push(mock);
+            return res.json({ success: true, message: 'Surat Jalan (DO) berhasil dibuat (Mock).', id: mock.id });
+        }
+    } catch (err) {
+        return res.status(500).json({ success: false, message: err.message });
+    }
+}
+
+module.exports = {
+    getDOs,
+    createDO
+};

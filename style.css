@@ -495,7 +495,42 @@ textarea {
 
 .pt-3 { padding-top: 12px; }
 .mt-3 { margin-top: 12px; }
-.mt-4 { margin-top: 16px; }
+/* Column Designer Cards */
+.col-card {
+    background: rgba(0, 0, 0, 0.2);
+    border: 1px solid var(--editor-border);
+    border-radius: 6px;
+    padding: 10px;
+    margin-bottom: 10px;
+}
+
+.col-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+    font-size: 11.5px;
+    font-weight: 700;
+    color: var(--primary);
+}
+
+.col-card-body {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+}
+
+.col-card-full {
+    grid-column: span 2;
+}
+
+.btn-col-delete {
+    background: none;
+    border: none;
+    color: var(--accent-red);
+    cursor: pointer;
+    font-size: 13px;
+}
 
 .sidebar-footer {
     padding: 16px 20px;
@@ -891,32 +926,38 @@ textarea {
 
 .items-table {
     width: 100%;
+    table-layout: fixed;
     border-collapse: collapse;
-    font-size: 11.5px;
+    font-size: 10.5px;
+    box-sizing: border-box;
 }
 
 .items-table th,
 .items-table td {
     border: 1.5px solid var(--doc-text-dark);
-    padding: 8px 10px;
+    padding: 5px 4px;
     color: var(--doc-text-dark);
-    line-height: 1.4;
+    line-height: 1.25;
+    word-break: break-word;
+    overflow-wrap: break-word;
+    overflow: hidden;
+    box-sizing: border-box;
 }
 
 .items-table th {
     background-color: #f1f5f9;
     font-weight: 700;
     text-align: center;
+    font-size: 10px;
+    padding: 6px 3px;
+    vertical-align: middle;
+    word-break: break-word;
+    hyphens: auto;
+    white-space: normal;
 }
 
 .items-table td {
     vertical-align: middle;
-}
-
-/* Respect line-breaks in Description column */
-.items-table td:nth-child(2) {
-    white-space: pre-line;
-    text-align: left;
 }
 
 .items-table .text-center {
@@ -925,12 +966,10 @@ textarea {
 
 .items-table .text-right {
     text-align: right;
-    white-space: nowrap !important; /* Mencegah Rp dan angka berpisah/menumpuk ke baris baru */
 }
 
 #view-grand-total {
     text-align: right !important;
-    white-space: nowrap !important;
 }
 
 /* Helper to hide grand total row with maximum layout stability */
@@ -1333,3 +1372,162 @@ textarea {
         right: 80px;
     }
 }
+
+/* --- IMPERSONATION BANNER HEADER --- */
+.impersonation-banner {
+    background: linear-gradient(90deg, #b91c1c, #dc2626);
+    color: #ffffff;
+    font-weight: 700;
+    font-size: 13px;
+    padding: 8px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 2px 10px rgba(220, 38, 38, 0.4);
+    z-index: 9999;
+    position: relative;
+}
+
+.impersonation-banner .btn-stop-impersonate {
+    background: #ffffff;
+    color: #b91c1c;
+    border: none;
+    padding: 4px 14px;
+    border-radius: 4px;
+    font-weight: 700;
+    cursor: pointer;
+    font-size: 12px;
+    transition: all 0.2s ease;
+}
+
+.impersonation-banner .btn-stop-impersonate:hover {
+    background: #fef2f2;
+    transform: scale(1.03);
+}
+
+/* Module Navigation Pills */
+.nav-modules-bar {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    padding: 10px 16px;
+    background: rgba(15, 23, 42, 0.95);
+    border-bottom: 1px solid var(--editor-border);
+}
+
+.nav-module-btn {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--editor-border);
+    color: var(--editor-text-muted);
+    padding: 6px 14px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.2s ease;
+}
+
+/* --- MODAL OVERLAY FOR MULTI-MODULES --- */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(15, 23, 42, 0.75);
+    backdrop-filter: blur(8px);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 10000;
+    padding: 20px;
+}
+
+.modal-card {
+    background: #1e293b;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 16px;
+    width: 100%;
+    max-width: 900px;
+    max-height: 85vh;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    overflow: hidden;
+}
+
+.modal-header {
+    padding: 16px 24px;
+    background: rgba(30, 41, 59, 0.95);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.modal-header h3 {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 700;
+    color: #f8fafc;
+}
+
+.btn-close-modal {
+    background: transparent;
+    border: none;
+    color: #94a3b8;
+    font-size: 24px;
+    cursor: pointer;
+}
+
+.btn-close-modal:hover {
+    color: #ffffff;
+}
+
+.modal-body {
+    padding: 24px;
+    overflow-y: auto;
+    color: #e2e8f0;
+}
+
+.erp-data-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 16px;
+    font-size: 13px;
+}
+
+.erp-data-table th,
+.erp-data-table td {
+    padding: 10px 14px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    text-align: left;
+}
+
+.erp-data-table th {
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--primary);
+    font-weight: 700;
+}
+
+.erp-data-table tr:hover {
+    background: rgba(255, 255, 255, 0.03);
+}
+
+.btn-action-sm {
+    background: var(--primary);
+    color: #ffffff;
+    border: none;
+    padding: 4px 10px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.btn-action-sm:hover {
+    opacity: 0.9;
+}
+
+
