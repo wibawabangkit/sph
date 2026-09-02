@@ -3,8 +3,8 @@
 -- DATABASE: enterprise_db
 -- =========================================================
 
-CREATE DATABASE IF NOT EXISTS enterprise_db;
-USE enterprise_db;
+CREATE DATABASE IF NOT EXISTS test_enterprise_db;
+USE test_enterprise_db;
 
 -- 1. TABEL PROFIL PERUSAHAAN (TENANT MASTER)
 CREATE TABLE IF NOT EXISTS master_companies (

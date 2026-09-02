@@ -5,5 +5,7 @@ const { verifyToken, tenantScope } = require('../middleware/authMiddleware');
 
 router.get('/', verifyToken, tenantScope, vendorController.getVendors);
 router.post('/', verifyToken, tenantScope, vendorController.createVendor);
+router.put('/:id', verifyToken, tenantScope, vendorController.updateVendor);
+router.delete('/:id', verifyToken, tenantScope, vendorController.deleteVendor);
 
 module.exports = router;

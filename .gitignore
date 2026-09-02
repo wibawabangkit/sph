@@ -1,3 +1,9 @@
-node_modules/
-*.log
+/node_modules
+/vendor
 .env
+.env.backup
+.env.production
+*.log
+/storage/*.key
+/public/storage
+/public/build

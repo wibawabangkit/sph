@@ -1,7 +1,5 @@
 const pool = require('../config/db');
 
-const MOCK_RECEIPTS = [];
-
 function numberToTerbilang(angka) {
     const bil = ["", "Satu", "Dua", "Tiga", "Empat", "Lima", "Enam", "Tujuh", "Delapan", "Sembilan", "Sepuluh", "Sebelas"];
     let n = Math.abs(Math.floor(angka));
@@ -25,12 +23,7 @@ function getTerbilangRupiah(nominal) {
 async function getReceipts(req, res) {
     const companyId = req.tenantCompanyId || 1;
     try {
-        let rows = [];
-        try {
-            [rows] = await pool.query(`SELECT * FROM receipts WHERE company_id = ? ORDER BY id DESC`, [companyId]);
-        } catch (dbErr) {
-            rows = MOCK_RECEIPTS.filter(r => r.company_id == companyId);
-        }
+        const [rows] = await pool.query(`SELECT * FROM receipts WHERE company_id = ? ORDER BY id DESC`, [companyId]);
         return res.json({ success: true, data: rows });
     } catch (err) {
         return res.status(500).json({ success: false, message: err.message });
@@ -48,17 +41,11 @@ async function createReceipt(req, res) {
     const amountSpelled = getTerbilangRupiah(numAmount);
 
     try {
-        try {
-            const [result] = await pool.query(
-                `INSERT INTO receipts (company_id, receipt_no, receipt_date, invoice_id, received_from, amount, amount_spelled, payment_for, payment_method) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-                [companyId, receipt_no, receipt_date || new Date().toISOString().split('T')[0], invoice_id || null, received_from, numAmount, amountSpelled, payment_for || '', payment_method || 'Transfer Bank']
-            );
-            return res.json({ success: true, message: 'Kwitansi Pembayaran berhasil dibuat.', id: result.insertId, amount_spelled: amountSpelled });
-        } catch (dbErr) {
-            const mock = { id: MOCK_RECEIPTS.length + 1, company_id: companyId, receipt_no, receipt_date, received_from, amount: numAmount, amount_spelled: amountSpelled, payment_for, payment_method: payment_method || 'Transfer Bank' };
-            MOCK_RECEIPTS.push(mock);
-            return res.json({ success: true, message: 'Kwitansi Pembayaran berhasil dibuat (Mock).', id: mock.id, amount_spelled: amountSpelled });
-        }
+        const [result] = await pool.query(
+            `INSERT INTO receipts (company_id, receipt_no, receipt_date, invoice_id, received_from, amount, amount_spelled, payment_for, payment_method) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+            [companyId, receipt_no, receipt_date || new Date().toISOString().split('T')[0], invoice_id || null, received_from, numAmount, amountSpelled, payment_for || '', payment_method || 'Transfer Bank']
+        );
+        return res.json({ success: true, message: 'Kwitansi Pembayaran berhasil dibuat ke MySQL.', id: result.insertId, amount_spelled: amountSpelled });
     } catch (err) {
         return res.status(500).json({ success: false, message: err.message });
     }

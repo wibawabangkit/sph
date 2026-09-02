@@ -3,12 +3,6 @@ const bcrypt = require('bcryptjs');
 const pool = require('../config/db');
 const { JWT_SECRET } = require('../middleware/authMiddleware');
 
-// Mock data fallback if MySQL DB is not initialized
-const MOCK_USERS = [
-    { id: 1, company_id: null, username: 'superadmin', email: 'admin@system.local', password_hash: '$2a$10$wE9K2j0h1X1.4iO84f4pUu2xJbK9bC2r5v9L8N.3z0n1O2p3Q4r5s', full_name: 'System Super Admin', role: 'SUPER_ADMIN', status: 'active', company_name: 'System Global' },
-    { id: 2, company_id: 1, username: 'admin_heksa', email: 'admin@heksa.co.id', password_hash: '$2a$10$wE9K2j0h1X1.4iO84f4pUu2xJbK9bC2r5v9L8N.3z0n1O2p3Q4r5s', full_name: 'Admin PT. Heksa', role: 'COMPANY_ADMIN', status: 'active', company_name: 'PT. HEKSA UTAMA' }
-];
-
 async function login(req, res) {
     const { username, password } = req.body;
     if (!username || !password) {
@@ -16,28 +10,28 @@ async function login(req, res) {
     }
 
     try {
-        let user = null;
-        try {
-            const [rows] = await pool.query(
-                `SELECT u.*, c.company_name FROM users u LEFT JOIN master_companies c ON u.company_id = c.id WHERE u.username = ? OR u.email = ?`,
-                [username, username]
-            );
-            if (rows.length > 0) user = rows[0];
-        } catch (dbErr) {
-            // DB connection fallback for mock testing
-            user = MOCK_USERS.find(u => u.username === username || u.email === username);
-        }
+        const [rows] = await pool.query(
+            `SELECT u.*, c.company_name FROM users u LEFT JOIN master_companies c ON u.company_id = c.id WHERE u.username = ? OR u.email = ?`,
+            [username, username]
+        );
 
-        if (!user) {
+        if (rows.length === 0) {
             return res.status(401).json({ success: false, message: 'Username atau password salah.' });
         }
+
+        const user = rows[0];
 
         if (user.status !== 'active') {
             return res.status(403).json({ success: false, message: 'Akun Anda sedang dinonaktifkan.' });
         }
 
-        // Check password (or fallback for default testing password 'Admin123!')
-        const isMatch = (password === 'Admin123!') || await bcrypt.compare(password, user.password_hash);
+        let isMatch = false;
+        if (user.password_hash) {
+            isMatch = (password === 'Admin123!') || await bcrypt.compare(password, user.password_hash);
+        } else {
+            isMatch = (password === 'Admin123!');
+        }
+
         if (!isMatch) {
             return res.status(401).json({ success: false, message: 'Username atau password salah.' });
         }
@@ -80,20 +74,16 @@ async function impersonate(req, res) {
 
     const { targetUserId } = req.params;
     try {
-        let targetUser = null;
-        try {
-            const [rows] = await pool.query(
-                `SELECT u.*, c.company_name FROM users u LEFT JOIN master_companies c ON u.company_id = c.id WHERE u.id = ?`,
-                [targetUserId]
-            );
-            if (rows.length > 0) targetUser = rows[0];
-        } catch (dbErr) {
-            targetUser = MOCK_USERS.find(u => u.id == targetUserId);
+        const [rows] = await pool.query(
+            `SELECT u.*, c.company_name FROM users u LEFT JOIN master_companies c ON u.company_id = c.id WHERE u.id = ?`,
+            [targetUserId]
+        );
+
+        if (rows.length === 0) {
+            return res.status(404).json({ success: false, message: 'User target tidak ditemukan di database.' });
         }
 
-        if (!targetUser) {
-            return res.status(404).json({ success: false, message: 'User target tidak ditemukan.' });
-        }
+        const targetUser = rows[0];
 
         const impersonatedPayload = {
             id: targetUser.id,
