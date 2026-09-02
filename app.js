@@ -1881,6 +1881,12 @@ function renderModuleUI(moduleKey, data, container) {
         });
         html += '</tbody></table>';
     } else if (moduleKey === 'do') {
+        if (!window.moduleStore) window.moduleStore = {};
+        if (!window.moduleStore.do || window.moduleStore.do.length === 0) {
+            window.moduleStore.do = data;
+        }
+        const listData = window.moduleStore.do;
+
         html += '<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 16px;">' +
             '<p style="margin:0; font-size: 13px; color: #94a3b8;">Delivery Order (DO) / Surat Jalan Logistik pengiriman barang.</p>' +
             '<button class="btn btn-primary" onclick="openDOCreateModal()">+ Buat DO Baru</button>' +
@@ -1889,7 +1895,7 @@ function renderModuleUI(moduleKey, data, container) {
         html += '<table class="erp-data-table">' +
             '<thead><tr><th>No. DO</th><th>Tanggal</th><th>Customer</th><th>Driver</th><th>Vehicle No</th><th>Status</th><th>Aksi</th></tr></thead>' +
             '<tbody>';
-        data.forEach(item => {
+        listData.forEach(item => {
             html += '<tr>' +
                 '<td><strong>' + item.do_no + '</strong></td>' +
                 '<td>' + item.do_date + '</td>' +
@@ -2051,9 +2057,11 @@ window.triggerImpersonate = async function(userId, userName, companyName) {
     }
 };
 window.openInvoiceCreateModal = function() {
+    const modal = document.getElementById('module-dialog-modal');
     const modalBody = document.getElementById('modal-body');
     const modalTitle = document.getElementById('modal-title');
     if (!modalBody) return;
+    if (modal) modal.style.display = 'flex';
     
     modalTitle.textContent = '💳 Buat Invoice Baru (Pilih Template & Import SPH)';
     
@@ -2177,19 +2185,21 @@ window.submitCreateInvoice = async function() {
 };
 
 window.openDOCreateModal = function() {
+    const modal = document.getElementById('module-dialog-modal');
     const modalBody = document.getElementById('modal-body');
     const modalTitle = document.getElementById('modal-title');
     if (!modalBody) return;
+    if (modal) modal.style.display = 'flex';
     modalTitle.textContent = '🚚 Buat Delivery Order (DO / Surat Jalan Logistik)';
     
     modalBody.innerHTML = `
         <div style="background: rgba(15,23,42,0.6); padding: 16px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1);">
             <div class="form-group mb-3" style="background: rgba(56,189,248,0.1); padding: 12px; border-radius: 8px; border: 1px dashed #38bdf8;">
                 <label style="color: #38bdf8; font-weight: 700; font-size: 13px;">🔗 OPSI: Import Data dari SPH Penawaran</label>
-                <select class="form-control" style="background: #0f172a; color: #ffffff; border: 1px solid #38bdf8; margin-top: 6px;" onchange="if(this.value){ document.getElementById('do-customer').value='PT. MANDIRI SEJAHTERA'; document.getElementById('do-address').value='Jl. Industri Raya No. 45, Cikarang'; }">
-                    <option value="">-- Pilih SPH untuk Auto Pre-fill Data --</option>
-                    <option value="sph_1">14/SPH-DUMMY/V/2026 - PT. ABC</option>
-                    <option value="sph_2">05/SPH-HEKSA/VIII/2026 - PT. MANDIRI SEJAHTERA</option>
+                <select id="do-import-sph" class="form-control" style="background: #0f172a; color: #ffffff; border: 1px solid #38bdf8; margin-top: 6px;" onchange="handleDOImportSPH(this.value)">
+                    <option value="">-- Pilih SPH untuk Auto Pre-fill Data & Rincian Barang --</option>
+                    <option value="sph_1">14/SPH-DUMMY/V/2026 - PT. ABC (2 Barang)</option>
+                    <option value="sph_2">05/SPH-HEKSA/VIII/2026 - PT. MANDIRI SEJAHTERA (3 Barang)</option>
                 </select>
             </div>
 
@@ -2207,6 +2217,14 @@ window.openDOCreateModal = function() {
                     <input type="text" id="do-customer" class="form-control" placeholder="PT. MANDIRI SEJAHTERA">
                 </div>
                 <div class="form-group">
+                    <label style="color: #f43f5e; font-weight: 700;">Jabatan / Role Officer (WAJIB DIISI)*</label>
+                    <input type="text" id="do-sales-role" class="form-control" placeholder="Contoh: Sales / Marketing / Logistics / Manager" required style="border: 1px solid #f43f5e;">
+                </div>
+                <div class="form-group">
+                    <label>Nama Petugas / Officer PIC</label>
+                    <input type="text" id="do-sales-name" class="form-control" value="Fevi Aprianti" placeholder="Contoh: Fevi Aprianti">
+                </div>
+                <div class="form-group">
                     <label>Nama Pengemudi / Driver</label>
                     <input type="text" id="do-driver" class="form-control" value="Supriyadi">
                 </div>
@@ -2219,23 +2237,172 @@ window.openDOCreateModal = function() {
                     <input type="text" id="do-from" class="form-control" value="JKT/Stock Gudang Utama">
                 </div>
             </div>
+
+            <div class="form-group mt-2">
+                <label>Alamat Perusahaan Pengirim (From Address Box)</label>
+                <input type="text" id="do-from-address" class="form-control" value="Jl. Matahari Raya No. 480, Jakasetia, Bekasi Selatan, Kota Bekasi">
+            </div>
+
             <div class="form-group mt-2">
                 <label>Alamat Tujuan Pengiriman (Shipped To Box)</label>
                 <textarea id="do-address" class="form-control" rows="2">Jl. Industri Raya No. 45, Blok B-2, Cikarang Selatan, Jawa Barat</textarea>
             </div>
 
+            <!-- DYNAMIC ITEM TABLE BUILDER -->
+            <div style="margin-top: 16px; background: rgba(255,255,255,0.03); padding: 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1);">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                    <strong style="color: #38bdf8; font-size: 13px;">📦 Rincian Barang Logistik (Pengiriman)</strong>
+                    <button type="button" class="btn btn-secondary" onclick="addDOItemRow()" style="font-size: 11px; padding: 4px 10px;">+ Tambah Baris Barang</button>
+                </div>
+                <table style="width: 100%; border-collapse: collapse; font-size: 12px;" id="do-items-table">
+                    <thead>
+                        <tr style="border-bottom: 1px solid rgba(255,255,255,0.2); color: #cbd5e1; text-align: left;">
+                            <th style="padding: 6px;">Part Number (Opsional)</th>
+                            <th style="padding: 6px;">Deskripsi Barang (Wajib)</th>
+                            <th style="padding: 6px; width: 70px;">Qty</th>
+                            <th style="padding: 6px; width: 80px;">Satuan</th>
+                            <th style="padding: 6px; width: 40px; text-align: center;">Hapus</th>
+                        </tr>
+                    </thead>
+                    <tbody id="do-items-tbody">
+                        <tr>
+                            <td><input type="text" class="form-control item-part" placeholder="14Y3016133 (Boleh kosong)" style="padding: 4px; font-size: 11px;"></td>
+                            <td><input type="text" class="form-control item-desc" value="GUARD (LH,RH)" placeholder="Nama / Deskripsi barang" style="padding: 4px; font-size: 11px;"></td>
+                            <td><input type="number" class="form-control item-qty" value="2" style="padding: 4px; font-size: 11px;"></td>
+                            <td><input type="text" class="form-control item-unit" value="PCS" style="padding: 4px; font-size: 11px;"></td>
+                            <td style="text-align: center;"><button type="button" onclick="removeDOItemRow(this)" style="background: none; border: none; color: #ef4444; cursor: pointer; font-weight: bold;">✕</button></td>
+                        </tr>
+                        <tr>
+                            <td><input type="text" class="form-control item-part" placeholder="14X3011362 (Boleh kosong)" style="padding: 4px; font-size: 11px;"></td>
+                            <td><input type="text" class="form-control item-desc" value="BRACKET LH" placeholder="Nama / Deskripsi barang" style="padding: 4px; font-size: 11px;"></td>
+                            <td><input type="number" class="form-control item-qty" value="2" style="padding: 4px; font-size: 11px;"></td>
+                            <td><input type="text" class="form-control item-unit" value="PCS" style="padding: 4px; font-size: 11px;"></td>
+                            <td style="text-align: center;"><button type="button" onclick="removeDOItemRow(this)" style="background: none; border: none; color: #ef4444; cursor: pointer; font-weight: bold;">✕</button></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
             <div style="margin-top: 16px; text-align: right; display: flex; justify-content: flex-end; gap: 8px;">
                 <button type="button" class="btn btn-secondary" onclick="document.getElementById('module-dialog-modal').style.display='none'">Batal</button>
-                <button type="button" class="btn btn-primary" onclick="document.getElementById('module-dialog-modal').style.display='none'; renderFullPageModuleWorkspace('do', '3. 🚚 Delivery Order (DO)');">Simpan & Buat DO</button>
+                <button type="button" class="btn btn-primary" onclick="submitCreateDO()">Simpan & Buat DO</button>
             </div>
         </div>
     `;
 };
 
+window.addDOItemRow = function(part = '', desc = '', qty = 1, unit = 'PCS') {
+    const tbody = document.getElementById('do-items-tbody');
+    if (!tbody) return;
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+        <td><input type="text" class="form-control item-part" value="${part}" placeholder="Boleh kosong" style="padding: 4px; font-size: 11px;"></td>
+        <td><input type="text" class="form-control item-desc" value="${desc}" placeholder="Nama / Deskripsi barang" style="padding: 4px; font-size: 11px;"></td>
+        <td><input type="number" class="form-control item-qty" value="${qty}" style="padding: 4px; font-size: 11px;"></td>
+        <td><input type="text" class="form-control item-unit" value="${unit}" style="padding: 4px; font-size: 11px;"></td>
+        <td style="text-align: center;"><button type="button" onclick="removeDOItemRow(this)" style="background: none; border: none; color: #ef4444; cursor: pointer; font-weight: bold;">✕</button></td>
+    `;
+    tbody.appendChild(tr);
+};
+
+window.removeDOItemRow = function(btn) {
+    const tr = btn.closest('tr');
+    if (tr) tr.remove();
+};
+
+window.handleDOImportSPH = function(val) {
+    if (!val) return;
+    const customerEl = document.getElementById('do-customer');
+    const addressEl = document.getElementById('do-address');
+    const tbody = document.getElementById('do-items-tbody');
+
+    if (val === 'sph_1') {
+        if (customerEl) customerEl.value = 'PT. ABC';
+        if (addressEl) addressEl.value = 'Jl. Industri Raya No. 12, Jakarta Barat';
+        if (tbody) {
+            tbody.innerHTML = '';
+            addDOItemRow('WF-200', 'Baja WF 200 x 100 x 5.5 x 8mm', 10, 'BATANG');
+            addDOItemRow('H-BEAM-150', 'H-Beam 150 x 150mm Standard', 5, 'BATANG');
+        }
+    } else if (val === 'sph_2') {
+        if (customerEl) customerEl.value = 'PT. MANDIRI SEJAHTERA';
+        if (addressEl) addressEl.value = 'Jl. Industri Raya No. 45, Cikarang Selatan, Jawa Barat';
+        if (tbody) {
+            tbody.innerHTML = '';
+            addDOItemRow('14Y3016133', 'GUARD (LH,RH)', 2, 'PCS');
+            addDOItemRow('14X3011362', 'BRACKET LH', 2, 'PCS');
+            addDOItemRow('14X3011352', 'BRACKET RH', 2, 'PCS');
+        }
+    }
+};
+
+window.submitCreateDO = function() {
+    const salesRoleInput = document.getElementById('do-sales-role');
+    const salesRole = salesRoleInput ? salesRoleInput.value.trim() : '';
+    if (!salesRole) {
+        alert('⚠️ PERHATIAN: Jabatan / Role Officer wajib diisi!');
+        if (salesRoleInput) salesRoleInput.focus();
+        return;
+    }
+
+    const doNo = document.getElementById('do-no') ? document.getElementById('do-no').value : 'DO/2026/09/001';
+    const doDate = document.getElementById('do-date') ? document.getElementById('do-date').value : new Date().toISOString().split('T')[0];
+    const customer = document.getElementById('do-customer') ? document.getElementById('do-customer').value || 'PT. MANDIRI SEJAHTERA' : 'PT. MANDIRI SEJAHTERA';
+    const salesName = document.getElementById('do-sales-name') ? document.getElementById('do-sales-name').value : 'Fevi Aprianti';
+    const driver = document.getElementById('do-driver') ? document.getElementById('do-driver').value : 'Supriyadi';
+    const vehicle = document.getElementById('do-vehicle') ? document.getElementById('do-vehicle').value : 'B 9128 UXX';
+    const fromLoc = document.getElementById('do-from') ? document.getElementById('do-from').value : 'JKT/Stock Gudang Utama';
+    const fromAddr = document.getElementById('do-from-address') ? document.getElementById('do-from-address').value : 'Jl. Matahari Raya No. 480, Bekasi';
+    const address = document.getElementById('do-address') ? document.getElementById('do-address').value : 'Jl. Industri Raya No. 45, Cikarang';
+
+    // Collect dynamic items
+    const items = [];
+    const tbody = document.getElementById('do-items-tbody');
+    if (tbody) {
+        const rows = tbody.querySelectorAll('tr');
+        rows.forEach(r => {
+            const part = r.querySelector('.item-part') ? r.querySelector('.item-part').value : '';
+            const desc = r.querySelector('.item-desc') ? r.querySelector('.item-desc').value : '';
+            const qty = r.querySelector('.item-qty') ? r.querySelector('.item-qty').value : '1';
+            const unit = r.querySelector('.item-unit') ? r.querySelector('.item-unit').value : 'PCS';
+            if (desc.trim()) {
+                items.push({ part_no: part, description: desc, qty: qty, unit: unit });
+            }
+        });
+    }
+
+    const newItem = {
+        id: Date.now(),
+        do_no: doNo,
+        do_date: doDate,
+        customer_name: customer,
+        sales_role: salesRole,
+        sales_name: salesName,
+        driver_name: driver,
+        vehicle_no: vehicle,
+        from_location: fromLoc,
+        from_address: fromAddr,
+        delivery_address: address,
+        items: items,
+        status: 'Pengiriman'
+    };
+
+    if (!window.moduleStore) window.moduleStore = {};
+    if (!window.moduleStore.do) window.moduleStore.do = [];
+    window.moduleStore.do.unshift(newItem);
+
+    const modal = document.getElementById('module-dialog-modal');
+    if (modal) modal.style.display = 'none';
+
+    renderFullPageModuleWorkspace('do', '3. 🚚 Delivery Order (DO)');
+};
+
 window.openPOCreateModal = function() {
+    const modal = document.getElementById('module-dialog-modal');
     const modalBody = document.getElementById('modal-body');
     const modalTitle = document.getElementById('modal-title');
     if (!modalBody) return;
+    if (modal) modal.style.display = 'flex';
     modalTitle.textContent = '📄 Buat Purchase Order (PO Supplier / Vendor)';
     
     modalBody.innerHTML = `
@@ -2280,9 +2447,11 @@ window.openPOCreateModal = function() {
 };
 
 window.openTTBCreateModal = function() {
+    const modal = document.getElementById('module-dialog-modal');
     const modalBody = document.getElementById('modal-body');
     const modalTitle = document.getElementById('modal-title');
     if (!modalBody) return;
+    if (modal) modal.style.display = 'flex';
     modalTitle.textContent = '📦 Buat Tanda Terima Barang (TTB Penerimaan Fisik)';
     
     modalBody.innerHTML = `
@@ -2323,9 +2492,11 @@ window.openTTBCreateModal = function() {
 };
 
 window.openBASTCreateModal = function() {
+    const modal = document.getElementById('module-dialog-modal');
     const modalBody = document.getElementById('modal-body');
     const modalTitle = document.getElementById('modal-title');
     if (!modalBody) return;
+    if (modal) modal.style.display = 'flex';
     modalTitle.textContent = '📑 Buat Berita Acara Serah Terima (BAST 100%)';
     
     modalBody.innerHTML = `
@@ -2367,9 +2538,11 @@ window.openBASTCreateModal = function() {
 };
 
 window.openReceiptCreateModal = function() {
+    const modal = document.getElementById('module-dialog-modal');
     const modalBody = document.getElementById('modal-body');
     const modalTitle = document.getElementById('modal-title');
     if (!modalBody) return;
+    if (modal) modal.style.display = 'flex';
     modalTitle.textContent = '🧾 Buat Kwitansi Pembayaran (Auto Terbilang Rp)';
     
     modalBody.innerHTML = `
@@ -2416,9 +2589,11 @@ window.openReceiptCreateModal = function() {
 };
 
 window.openPrintPreviewModal = function(moduleKey, id) {
+    const modal = document.getElementById('module-dialog-modal');
     const modalBody = document.getElementById('modal-body');
     const modalTitle = document.getElementById('modal-title');
     if (!modalBody) return;
+    if (modal) modal.style.display = 'flex';
     
     let htmlContent = '';
     
@@ -2624,20 +2799,57 @@ window.openPrintPreviewModal = function(moduleKey, id) {
             </div>
         `;
     } else if (moduleKey === 'do') {
+        const item = (window.moduleStore && window.moduleStore.do) ? (window.moduleStore.do.find(x => x.id == id) || window.moduleStore.do[0]) : {};
+        const doNo = item.do_no || 'DO/2026/08/099';
+        const doDate = item.do_date || new Date().toISOString().split('T')[0];
+        const customer = item.customer_name || 'PT. MANDIRI SEJAHTERA';
+        const salesRole = item.sales_role || 'Sales';
+        const salesName = item.sales_name || 'Fevi Aprianti';
+        const driver = item.driver_name || 'Supriyadi';
+        const vehicle = item.vehicle_no || 'B 9128 UXX';
+        const fromLoc = item.from_location || 'JKT/Stock Gudang Utama';
+        const fromAddr = item.from_address || 'Jl. Matahari Raya No. 480, Jakasetia, Bekasi Selatan, Kota Bekasi';
+        const address = item.delivery_address || 'Jl. Industri Raya No. 45, Blok B-2, Cikarang Selatan, Jawa Barat';
+
+        const itemRows = (item.items && item.items.length > 0) ? item.items.map((it, idx) => `
+            <tr>
+                <td style="padding: 8px; text-align: center;">${idx + 1}</td>
+                <td style="padding: 8px;">${it.part_no || it.kode || '-'}</td>
+                <td style="padding: 8px;">${it.description || it.nama_barang || '-'}</td>
+                <td style="padding: 8px; text-align: right;">${it.qty || 1}.00</td>
+                <td style="padding: 8px; text-align: center;">${it.unit || it.satuan || 'PCS'}</td>
+            </tr>
+        `).join('') : `
+            <tr>
+                <td style="padding: 8px; text-align: center;">1</td>
+                <td style="padding: 8px;">14Y3016133</td>
+                <td style="padding: 8px;">GUARD (LH,RH)</td>
+                <td style="padding: 8px; text-align: right;">2.00</td>
+                <td style="padding: 8px; text-align: center;">PCS</td>
+            </tr>
+            <tr>
+                <td style="padding: 8px; text-align: center;">2</td>
+                <td style="padding: 8px;">14X3011362</td>
+                <td style="padding: 8px;">BRACKET LH</td>
+                <td style="padding: 8px; text-align: right;">2.00</td>
+                <td style="padding: 8px; text-align: center;">PCS</td>
+            </tr>
+        `;
+
         modalTitle.textContent = '🚚 CETAK A4: Delivery Order (template DO.pdf)';
         htmlContent = `
             <div style="background: #ffffff; color: #000000; padding: 30px; border-radius: 4px; box-shadow: 0 5px 20px rgba(0,0,0,0.4); font-family: Arial, sans-serif; font-size: 12px; max-width: 850px; margin: 0 auto; border: 1px solid #ccc;">
                 <div style="display: flex; justify-content: space-between; margin-bottom: 20px;">
                     <!-- LEFT COLUMN -->
                     <div style="width: 48%;">
-                        <h2 style="margin: 0 0 10px 0; font-size: 18px; font-weight: 700; color: #000;">PT. Multi Traktor Utama</h2>
+                        <h2 style="margin: 0 0 10px 0; font-size: 18px; font-weight: 700; color: #000;">${appState.impersonateTargetName || 'PT. Multi Traktor Utama'}</h2>
                         <table style="font-size: 12px; line-height: 1.5;">
-                            <tr><td style="width: 100px;">From Location</td><td>: JKT/Stock</td></tr>
-                            <tr><td style="vertical-align: top;">Address</td><td>: Jl Batu Tulis XV No. 17, RT 13/RW 2, Kebon Kelapa Gambir, Jakarta Pusat Jakarta 10120 Indonesia</td></tr>
+                            <tr><td style="width: 100px;">From Location</td><td>: <strong>${fromLoc}</strong></td></tr>
+                            <tr><td style="vertical-align: top;">Address</td><td>: ${fromAddr}</td></tr>
                             <tr><td>Phone & Fax</td><td>: </td></tr>
-                            <tr><td>Delivery Date</td><td>: 08/24/2026 09:30:22</td></tr>
-                            <tr><td>Delivery No</td><td>: JKT-DO-26-08-00053</td></tr>
-                            <tr><td>PO Number</td><td>: 260821-1047 SITE HJU</td></tr>
+                            <tr><td>Delivery Date</td><td>: <strong>${doDate}</strong></td></tr>
+                            <tr><td>Delivery No</td><td>: <strong>${doNo}</strong></td></tr>
+                            <tr><td>Plat Kendaraan</td><td>: <strong>${vehicle}</strong></td></tr>
                         </table>
                     </div>
 
@@ -2645,15 +2857,14 @@ window.openPrintPreviewModal = function(moduleKey, id) {
                     <div style="width: 48%;">
                         <h2 style="margin: 0 0 10px 0; font-size: 22px; font-weight: 400; color: #000; text-align: left;">Delivery Order</h2>
                         <table style="font-size: 12px; line-height: 1.5; width: 100%;">
-                            <tr><td style="width: 80px;">Customer</td><td>: <strong>PT. TUNAS JAYA PERKASA</strong></td></tr>
-                            <tr><td style="vertical-align: top;">Address</td><td>: JL. AKASIA 2, AE 45-46, DELTA SILIKON, LIPPO CIKARANG, SUKARESMI, CIKARANG SELATAN, Indonesia</td></tr>
-                            <tr><td>Sales</td><td>: Fevi Aprianti</td></tr>
+                            <tr><td style="width: 80px;">Customer</td><td>: <strong>${customer}</strong></td></tr>
+                            <tr><td style="vertical-align: top;">Driver Name</td><td>: <strong>${driver}</strong></td></tr>
+                            <tr><td>${salesRole}</td><td>: <strong>${salesName}</strong></td></tr>
                         </table>
                         <div style="margin-top: 8px;">
                             <strong>Shipped To :</strong>
                             <div style="border: 1px solid #000; padding: 8px; font-weight: 700; margin-top: 4px; background: #fff;">
-                                Komplek haur kuning Rumah no 2 dari gerbang haur kuning (mess tunas jaya)<br>
-                                Kecamatan Tapin Utara Kabupaten Tapin Kalimantan Selatan
+                                ${address}
                             </div>
                         </div>
                     </div>
@@ -2671,27 +2882,7 @@ window.openPrintPreviewModal = function(moduleKey, id) {
                         </tr>
                     </thead>
                     <tbody>
-                        <tr>
-                            <td style="padding: 8px; text-align: center;">1</td>
-                            <td style="padding: 8px;">14Y3016133</td>
-                            <td style="padding: 8px;">GUARD (LH,RH)</td>
-                            <td style="padding: 8px; text-align: right;">2.00</td>
-                            <td style="padding: 8px; text-align: center;">PCS</td>
-                        </tr>
-                        <tr>
-                            <td style="padding: 8px; text-align: center;">2</td>
-                            <td style="padding: 8px;">14X3011362</td>
-                            <td style="padding: 8px;">BRACKET LH</td>
-                            <td style="padding: 8px; text-align: right;">2.00</td>
-                            <td style="padding: 8px; text-align: center;">PCS</td>
-                        </tr>
-                        <tr>
-                            <td style="padding: 8px; text-align: center;">3</td>
-                            <td style="padding: 8px;">14X3011352</td>
-                            <td style="padding: 8px;">BRACKET RH</td>
-                            <td style="padding: 8px; text-align: right;">2.00</td>
-                            <td style="padding: 8px; text-align: center;">PCS</td>
-                        </tr>
+                        ${itemRows}
                     </tbody>
                 </table>
 
@@ -2703,14 +2894,14 @@ window.openPrintPreviewModal = function(moduleKey, id) {
                 <div style="display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 30px;">
                     <div style="width: 45%;">
                         <p style="margin: 0 0 4px 0; font-weight: 700;">Delivered By :</p>
-                        <p style="margin: 0 0 40px 0; font-weight: 700;">PT. Multi Traktor Utama</p>
-                        <div>Name : Fevi Aprianti</div>
-                        <div>Sales ID : </div>
+                        <p style="margin: 0 0 40px 0; font-weight: 700;">${appState.impersonateTargetName || 'PT. Multi Traktor Utama'}</p>
+                        <div>Officer (${salesRole}) : ${salesName}</div>
+                        <div>Driver Name : ${driver} (${vehicle})</div>
                         <div>Signature : </div>
                     </div>
                     <div style="width: 45%;">
                         <p style="margin: 0 0 4px 0; font-weight: 700;">Received By :</p>
-                        <p style="margin: 0 0 40px 0; font-weight: 700;">PT. TUNAS JAYA PERKASA</p>
+                        <p style="margin: 0 0 40px 0; font-weight: 700;">${customer}</p>
                         <div>Date : </div>
                         <div>Name : </div>
                         <div>Signature : </div>
