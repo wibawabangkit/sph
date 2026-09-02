@@ -99,16 +99,35 @@ function applyThemeColor(hexColor) {
     document.documentElement.style.setProperty('--primary-light', adjustColor(hexColor, 40));
 }
 
-function getStorageKey() {
+function getActiveCompanyId() {
     const userStr = localStorage.getItem('erp_user');
     if (userStr) {
         try {
             const u = JSON.parse(userStr);
-            if (u && (u.company_id || u.id)) return `heksa_quotation_state_company_${u.company_id || u.id}`;
+            if (u) {
+                if (u.role === 'SUPER_ADMIN') {
+                    const savedCompId = localStorage.getItem('superadmin_active_company_id');
+                    return savedCompId ? Number(savedCompId) : 1;
+                }
+                return u.company_id || 1;
+            }
         } catch(e) {}
     }
-    return 'heksa_quotation_state_default';
+    return 1;
 }
+
+function getStorageKey() {
+    const companyId = getActiveCompanyId();
+    return `heksa_quotation_state_company_${companyId}`;
+}
+
+window.switchSuperAdminCompanyContext = function(companyId) {
+    localStorage.setItem('superadmin_active_company_id', companyId);
+    loadState();
+    if (typeof renderAll === 'function') renderAll();
+    const compName = companyId == 2 ? 'PT WITACA BANGKIT UTAMA' : 'PT. HEKSA UTAMA';
+    alert(`🌐 [SUPER ADMIN] Context Perusahaan dialihkan ke: ${compName} (ID: ${companyId})`);
+};
 
 // Load state from LocalStorage or fallback to Default Template
 function loadState() {
@@ -119,6 +138,7 @@ function loadState() {
     if (userStr) {
         try { userCompany = JSON.parse(userStr); } catch(e) {}
     }
+    const activeCompanyId = getActiveCompanyId();
 
     if (saved) {
         try {
@@ -129,12 +149,13 @@ function loadState() {
         }
     } else {
         appState = JSON.parse(JSON.stringify(DEFAULT_DATA)); // Deep clone
-        if (userCompany && userCompany.company_name) {
-            appState.companyName = userCompany.company_name;
-            appState.footerCompanyName = userCompany.company_name;
-            const prefix = userCompany.company_id === 2 ? 'WITACA' : 'HEKSA';
-            appState.noSurat = `01/SPH-${prefix}/${new Date().getFullYear()}`;
-        }
+        const targetCompId = (userCompany && userCompany.role === 'SUPER_ADMIN') ? activeCompanyId : (userCompany ? userCompany.company_id : 1);
+        const compName = targetCompId === 2 ? 'PT WITACA BANGKIT UTAMA' : 'PT. HEKSA UTAMA';
+        const prefix = targetCompId === 2 ? 'WITACA' : 'HEKSA';
+        
+        appState.companyName = compName;
+        appState.footerCompanyName = compName;
+        appState.noSurat = `01/SPH-${prefix}/${new Date().getFullYear()}`;
     }
 
     // Dynamic Tenant Enforcement if empty or default mismatched
@@ -2393,6 +2414,7 @@ window.logoutUser = function() {
 function updateNavUserBadge(user) {
     const btn = document.getElementById('btn-nav-login');
     const superAdminBtn = document.querySelector('.nav-module-btn[data-module="users"]');
+    const saWidgetContainer = document.getElementById('superadmin-tenant-widget');
 
     if (superAdminBtn) {
         if (user && user.role === 'SUPER_ADMIN') {
@@ -2402,17 +2424,40 @@ function updateNavUserBadge(user) {
         }
     }
 
+    if (saWidgetContainer) {
+        if (user && user.role === 'SUPER_ADMIN') {
+            const activeCompId = typeof getActiveCompanyId === 'function' ? getActiveCompanyId() : 1;
+            saWidgetContainer.style.display = 'inline-flex';
+            saWidgetContainer.innerHTML = `
+                <div style="display: inline-flex; align-items: center; gap: 8px; background: rgba(15, 23, 42, 0.85); border: 1px solid rgba(245, 158, 11, 0.4); border-radius: 8px; padding: 4px 10px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);">
+                    <span style="font-size: 11px; font-weight: 800; color: #f59e0b; text-transform: uppercase; letter-spacing: 0.5px; display: flex; align-items: center; gap: 4px;">
+                        <span style="font-size: 13px;">🏢</span> Context Tenant:
+                    </span>
+                    <select onchange="switchSuperAdminCompanyContext(this.value)" style="background: #1e293b; color: #fef08a; border: 1px solid #475569; border-radius: 6px; padding: 4px 10px; font-size: 12px; font-weight: 700; outline: none; cursor: pointer; transition: all 0.2s ease;">
+                        <option value="1" ${activeCompId == 1 ? 'selected' : ''}>PT. HEKSA UTAMA (ID 1)</option>
+                        <option value="2" ${activeCompId == 2 ? 'selected' : ''}>PT WITACA BANGKIT UTAMA (ID 2)</option>
+                    </select>
+                </div>
+            `;
+        } else {
+            saWidgetContainer.style.display = 'none';
+            saWidgetContainer.innerHTML = '';
+        }
+    }
+
     if (!btn) return;
     
     if (user && user.username) {
         btn.style.background = 'rgba(16, 185, 129, 0.2)';
         btn.style.color = '#34d399';
         btn.style.borderColor = 'rgba(16, 185, 129, 0.4)';
+        btn.style.marginLeft = (saWidgetContainer && user.role === 'SUPER_ADMIN') ? '0' : 'auto';
         btn.innerHTML = `👤 ${user.username} (${user.role}) <span onclick="event.stopPropagation(); logoutUser();" style="margin-left: 6px; text-decoration: underline; color: #f87171;" title="Logout">Logout</span>`;
     } else {
         btn.style.background = 'rgba(14, 165, 233, 0.2)';
         btn.style.color = '#38bdf8';
         btn.style.borderColor = 'rgba(56, 189, 248, 0.4)';
+        btn.style.marginLeft = 'auto';
         btn.innerHTML = '🔐 Login Akun';
     }
 }
